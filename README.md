@@ -8,3 +8,9 @@ php parse.php syn
 ```
 
 Результат будет скачен с ресурса https://bible.by/syn/ в виде файла JSON и сохранен в директории `bible`.
+
+# Добавление таймкодов к аудио
+
+```
+php alignment.php syn syn-bondarenko
+```

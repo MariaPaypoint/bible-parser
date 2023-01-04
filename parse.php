@@ -14,7 +14,7 @@ function determine_translation()
 	$doc->loadHTMLFile($url);
 	
 	if ( strpos($doc->textContent, WRONG_TEXT) )
-		die("Translation not found (example url: $url)");
+		die("Translation not found (example url: $url)\n\n");
 	
 	return $translation;
 }
@@ -31,7 +31,7 @@ function get_chapter($doc, $book) {
 		for ( $counter = 1; $counter < $element->childNodes->length; $counter ++ )
 			$text .= $element->childNodes->item($counter)->textContent;
 		
-		$result[$sub] = $text;
+		$result[$sub] = trim($text);
 		
 		$id++;
 	}
