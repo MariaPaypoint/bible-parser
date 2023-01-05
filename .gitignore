@@ -1,1 +1,3 @@
 audio/*.mp3
+audio/*.txt
+audio/timecodes.json

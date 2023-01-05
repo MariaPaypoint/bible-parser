@@ -12,6 +12,9 @@ php parse.php syn
 # Добавление таймкодов к аудио
 
 Скрипт позволяет скачивать аудиоверсию Библии и создавать файл с таймкодами каждого стиха. 
+
+На машине должен быть установлен докер и иметься [образ aeneas](https://github.com/MariaPaypoint/aeneas-docker).
+
 ```
 php alignment.php syn syn-bondarenko
 ```

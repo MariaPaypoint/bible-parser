@@ -7,7 +7,7 @@ Description about docker
 implement to ios
 */
 
-function determine_translation() 
+function determine_translation()
 {
 	global $argv;
 	
@@ -23,7 +23,7 @@ function determine_translation()
 	return $translation;
 }
 
-function determine_voice() 
+function determine_voice()
 {
 	global $argv;
 	
@@ -40,12 +40,12 @@ function determine_voice()
 	return $voice;
 }
 
-function get_chapter_audio_url($voice, $book, $chapter) 
+function get_chapter_audio_url($voice, $book, $chapter)
 {
 	return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
 }
 
-function get_translation_array($translation) 
+function get_translation_array($translation)
 {
 	$filename = "bible/$translation.json";
 	$translationArray = json_decode(file_get_contents($filename), true);
@@ -53,13 +53,14 @@ function get_translation_array($translation)
 	return $translationArray;
 }
 
-function create_chapter_plain($translationArrayBookChapter, $book_chapter, $chapter) 
+function create_chapter_plain($translationArrayBookChapter, $book_chapter, $chapter)
 {
 	$filename = 'audio/' . $book_chapter . '.txt';
 	
 	$str = "Глава $chapter \n";
 	
-	foreach ($translationArrayBookChapter as $key => $value) {
+	foreach ($translationArrayBookChapter as $key => $value)
+	{
 		$str .= $value . "\n";
 	}
 	
@@ -68,11 +69,12 @@ function create_chapter_plain($translationArrayBookChapter, $book_chapter, $chap
 	//print("Plain $filename created\n");
 }
 
-function download_chapter_audio($voice, $book_chapter, $book, $chapter) 
+function download_chapter_audio($voice, $book_chapter, $book, $chapter)
 {
 	$filename = 'audio/' . $book_chapter . '.mp3';
 	
-	if ( !file_exists($filename) ) {
+	if ( !file_exists($filename) )
+	{
 		$url = get_chapter_audio_url($voice, $book, $chapter);
 		file_put_contents($filename, file_get_contents($url));
 		//print("Audio $filename downloaded\n");
@@ -80,10 +82,9 @@ function download_chapter_audio($voice, $book_chapter, $book, $chapter)
 	else {
 		//print("Audio $filename already exists\n");
 	}
-	
 }
 
-function create_chapter_timecodes($book_chapter) 
+function create_chapter_timecodes($book_chapter)
 {
 	$filename = 'audio/' . $book_chapter . '.mp3';
 	
@@ -100,12 +101,11 @@ function create_chapter_timecodes($book_chapter)
 	if ( exec($cmd_aenaes , $output) ) { //, $retval
 		//print("Timecodes audio/timecodes.json generated\n");
 	}
-	else {
+	else
 		print_r($output);
-	}
 }
 
-function get_formatted_chapter_timecodes() 
+function get_formatted_chapter_timecodes()
 {
 	$filenameT = 'audio/timecodes.json';
 	
@@ -113,8 +113,8 @@ function get_formatted_chapter_timecodes()
 	
 	$formatted = [];
 	
-	foreach ($timecodesArray["fragments"] as $key => $value) {
-		
+	foreach ($timecodesArray["fragments"] as $key => $value)
+	{
 		if ( $key == 0 )
 			continue; // name of chapter
 		
@@ -128,7 +128,7 @@ function get_formatted_chapter_timecodes()
 	return $formatted;
 }
 
-function delete_temporary_files() 
+function delete_temporary_files()
 {
 	unlink('audio/timecodes.json');
 	array_map('unlink', glob('audio/*.txt'));
@@ -136,21 +136,21 @@ function delete_temporary_files()
 	print("Temporary files deleted\n");
 }
 
-function create_all_formatted_timecodes($translation, $voice) 
+function create_all_formatted_timecodes($translation, $voice)
 {
 	$translationArray = get_translation_array($translation);
 	
 	$resultArray = [];
 	
-	foreach($translationArray as $bookCode => $bookArray) 
+	foreach($translationArray as $bookCode => $bookArray)
 	{
-		if ( $bookCode < 40 or $bookCode > 43 ) continue; // Только Евангелия
+		//if ( $bookCode < 40 or $bookCode > 43 ) continue; // Только Евангелия
 		
 		$resultArray[$bookCode] = [];
 		
 		print("Book $bookCode ... ");
 		
-		foreach($bookArray as $chapterCode => $chapterArray) 
+		foreach($bookArray as $chapterCode => $chapterArray)
 		{
 			//if ( $chapterCode > 2 ) break;
 			
