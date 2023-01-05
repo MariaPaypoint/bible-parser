@@ -1,12 +1,5 @@
 <?php
 
-/*
-TODO: 
-
-Description about docker
-implement to ios
-*/
-
 function determine_translation()
 {
 	global $argv;
