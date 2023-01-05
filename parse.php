@@ -21,7 +21,7 @@ function determine_translation()
 
 function get_chapter($doc, $book) {
 	
-	$result = Array();
+	$result = [];
 	$id = 1; 
 	
 	while ( $element = $doc->getElementById($id) ) {
@@ -31,7 +31,7 @@ function get_chapter($doc, $book) {
 		for ( $counter = 1; $counter < $element->childNodes->length; $counter ++ )
 			$text .= $element->childNodes->item($counter)->textContent;
 		
-		$result[$sub] = trim($text);
+		array_push($result, ['id'=>intval($sub), 'text'=>trim($text)]);
 		
 		$id++;
 	}
@@ -42,32 +42,46 @@ function get_chapter($doc, $book) {
 function get_all_books($translation) 
 {
 	$doc = new DOMDocument();
-	$bible = Array();
-	$book = 1;
-
-	while ( True ) {
+	$bible = ['code' => $translation, 'fullName' => '', 'books' => []];
+	$book = 0;
+	
+	while ( True ) 
+	{
+		$book++;
+		
+		if ( $book < 40 ) continue; // Только НЗ
+		if ( $book > 43 ) break; // Только Евангелия
+		
 		$doc->loadHTMLFile("https://bible.by/syn/$book/1/");
 		
 		if ( strpos($doc->textContent, WRONG_TEXT) )
 			break;
 		print "Book $book. Chapters: ";
 		
-		$chapter = 1;
-		while ( True ) {
-			$doc->loadHTMLFile("https://bible.by/syn/$book/$chapter/");
+		$chapter = 0;
+		$bookArray = ['id' => $book, 'chapters' => []];
+		
+		while ( True ) 
+		{
+			$chapter++;
 			
+			$doc->loadHTMLFile("https://bible.by/syn/$book/$chapter/");
 			if ( strpos($doc->textContent, WRONG_TEXT) )
 				break;
+			
 			print " $chapter";
 			
-			$bible[$book][$chapter] = get_chapter($doc, $book, $chapter);
+			$chapterArray = ['id' => $chapter, 'verses' => get_chapter($doc, $book, $chapter)];
 			
-			$chapter++;
+			array_push($bookArray['chapters'], $chapterArray);
 		}
+		
+		array_push($bible['books'], $bookArray);
+		
 		print " OK\n";
 		
-		$book++;
-		//break;
+		
+		// if ( $book > 2 ) break;
 	}
 	return $bible;
 }
