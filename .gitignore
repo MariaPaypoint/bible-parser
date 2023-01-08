@@ -1,1 +1,7 @@
 audio_*
+
+audio*/*
+!audio/example.json
+
+bible/*
+!audio/example.json
