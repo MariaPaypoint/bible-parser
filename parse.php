@@ -63,7 +63,7 @@ function get_all_books($translation)
 	{
 		$book++;
 		
-		// if ( $book > 1 ) break; // отладка
+		//if ( $book > 2 ) break; // отладка
 		// if ( $book < 40 ) continue; // Только НЗ
 		// if ( $book > 43 ) break; // Только Евангелия
 		
@@ -87,7 +87,7 @@ function get_all_books($translation)
 		{
 			$chapter++;
 			
-			// if ( $chapter > 1 ) break; // отладка
+			//if ( $chapter > 2 ) break; // отладка
 			
 			$doc->loadHTMLFile("https://bible.by/$translation/$book/$chapter/");
 			if ( strpos($doc->textContent, WRONG_TEXT) )

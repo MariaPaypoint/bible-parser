@@ -189,7 +189,7 @@ function create_all_formatted_timecodes($mode, $translation, $voice)
 		$bookCode = $book['id'];
 		
 		//if ( $bookCode < 40 or $bookCode > 43 ) continue; // Только Евангелия
-		//if ( $bookCode < 41 or $bookCode > 41 ) continue;
+		//if ( $bookCode > 2 ) continue;
 		
 		$compute_chapters = true;
 		
@@ -223,7 +223,7 @@ function create_all_formatted_timecodes($mode, $translation, $voice)
 		{
 			$chapterCode = $chapter['id'];
 			
-			//if ( $chapterCode != 4 ) continue;
+			//if ( $chapterCode > 2 ) continue;
 			
 			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
 			
