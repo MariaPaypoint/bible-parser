@@ -1,0 +1,97 @@
+<?php
+
+function get_translation_info($translation)
+{
+	switch ($translation)
+	{
+		case 'syn' : return ['lang'=>'ru' , 'shortName'=>'SYNO' , 'fullName'=>'Синодальный перевод'];
+		case 'nrt' : return ['lang'=>'ru' , 'shortName'=>'НРП'  , 'fullName'=>'Новый русский перевод'];
+		case 'bti' : return ['lang'=>'ru' , 'shortName'=>'BTI'  , 'fullName'=>'Библия в переводе Кулаковых'];
+		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible'];
+	}
+	
+	return '';
+}
+
+function get_book_info($book_index)
+{
+	switch ($book_index)
+	{
+		case 1 : return ['code'=>'gen', 'shortName'=>['en'=>'Gen'   , 'ru'=>'Быт'  ] , 'fullName'=>['en'=>'Genesis'         , 'ru'=>'Бытие']];
+		case 2 : return ['code'=>'exo', 'shortName'=>['en'=>'Ex'    , 'ru'=>'Исх'  ] , 'fullName'=>['en'=>'Exodus'          , 'ru'=>'Исход']];
+		case 3 : return ['code'=>'lev', 'shortName'=>['en'=>'Lev'   , 'ru'=>'Лев'  ] , 'fullName'=>['en'=>'Leviticus'       , 'ru'=>'Левит']];
+		case 4 : return ['code'=>'num', 'shortName'=>['en'=>'Num'   , 'ru'=>'Чис'  ] , 'fullName'=>['en'=>'Numbers'         , 'ru'=>'Числа']];
+		case 5 : return ['code'=>'deu', 'shortName'=>['en'=>'Deut'  , 'ru'=>'Втор' ] , 'fullName'=>['en'=>'Deuteronomy'     , 'ru'=>'Второзаконие']];
+
+		case 6 : return ['code'=>'jos', 'shortName'=>['en'=>'Josh'  , 'ru'=>'Нав'  ] , 'fullName'=>['en'=>'Joshua'          , 'ru'=>'Иисус Навин']];
+		case 7 : return ['code'=>'jdg', 'shortName'=>['en'=>'Judg'  , 'ru'=>'Суд'  ] , 'fullName'=>['en'=>'Judges'          , 'ru'=>'Судьи']];
+		case 8 : return ['code'=>'rut', 'shortName'=>['en'=>'Ruth'  , 'ru'=>'Руфь' ] , 'fullName'=>['en'=>'Ruth'            , 'ru'=>'Руфь']];
+		case 9 : return ['code'=>'1sa', 'shortName'=>['en'=>'1Sam'  , 'ru'=>'1Цар' ] , 'fullName'=>['en'=>'1 Samuel'        , 'ru'=>'1 Царств']];
+		case 10: return ['code'=>'2sa', 'shortName'=>['en'=>'2Sam'  , 'ru'=>'2Цар' ] , 'fullName'=>['en'=>'2 Samuel'        , 'ru'=>'2 Царств']];
+		case 11: return ['code'=>'1ki', 'shortName'=>['en'=>'1Kings', 'ru'=>'3Цар' ] , 'fullName'=>['en'=>'1 Kings'         , 'ru'=>'3 Царств']];
+		case 12: return ['code'=>'2ki', 'shortName'=>['en'=>'2Kings', 'ru'=>'4Цар' ] , 'fullName'=>['en'=>'2 Kings'         , 'ru'=>'4 Царств']];
+		case 13: return ['code'=>'1ch', 'shortName'=>['en'=>'1Chron', 'ru'=>'1Пар' ] , 'fullName'=>['en'=>'1 Chronicles'    , 'ru'=>'1 Паралипоменон']];
+		case 14: return ['code'=>'2ch', 'shortName'=>['en'=>'2Chron', 'ru'=>'2Пар' ] , 'fullName'=>['en'=>'2 Chronicles'    , 'ru'=>'2 Паралипоменон']];
+		case 15: return ['code'=>'ezr', 'shortName'=>['en'=>'Ezra'  , 'ru'=>'Езд'  ] , 'fullName'=>['en'=>'Ezra'            , 'ru'=>'Ездра']];
+		case 16: return ['code'=>'neh', 'shortName'=>['en'=>'Neh'   , 'ru'=>'Неем' ] , 'fullName'=>['en'=>'Nehemiah'        , 'ru'=>'Неемия']];
+		case 17: return ['code'=>'est', 'shortName'=>['en'=>'Esther', 'ru'=>'Есф'  ] , 'fullName'=>['en'=>'Esther'          , 'ru'=>'Есфирь']];
+
+		case 18: return ['code'=>'job', 'shortName'=>['en'=>'Job'   , 'ru'=>'Иов'  ] , 'fullName'=>['en'=>'Job'             , 'ru'=>'Иов']];
+		case 19: return ['code'=>'psa', 'shortName'=>['en'=>'Ps'    , 'ru'=>'Пс'   ] , 'fullName'=>['en'=>'Psalms'          , 'ru'=>'Псалтирь']];
+		case 20: return ['code'=>'pro', 'shortName'=>['en'=>'Prov'  , 'ru'=>'Прит' ] , 'fullName'=>['en'=>'Proverbs'        , 'ru'=>'Притчи']];
+		case 21: return ['code'=>'ecc', 'shortName'=>['en'=>'Eccles', 'ru'=>'Еккл' ] , 'fullName'=>['en'=>'Ecclesiastes'    , 'ru'=>'Екклесиаст']];
+		case 22: return ['code'=>'sng', 'shortName'=>['en'=>'Song'  , 'ru'=>'Песн' ] , 'fullName'=>['en'=>'Song of Solomon' , 'ru'=>'Песни Песней']];
+
+		case 23: return ['code'=>'isa', 'shortName'=>['en'=>'Is'    , 'ru'=>'Ис'   ] , 'fullName'=>['en'=>'Isaiah'          , 'ru'=>'Исаия']];
+		case 24: return ['code'=>'jer', 'shortName'=>['en'=>'Jer'   , 'ru'=>'Иер'  ] , 'fullName'=>['en'=>'Jeremiah'        , 'ru'=>'Иеремия']];
+		case 25: return ['code'=>'lam', 'shortName'=>['en'=>'Lam'   , 'ru'=>'Плач' ] , 'fullName'=>['en'=>'Lamentations'    , 'ru'=>'Плач Иеремии']];
+		case 26: return ['code'=>'ezk', 'shortName'=>['en'=>'Ezek'  , 'ru'=>'Иез'  ] , 'fullName'=>['en'=>'Ezekiel'         , 'ru'=>'Иезекииль']];
+		case 27: return ['code'=>'dan', 'shortName'=>['en'=>'Dan'   , 'ru'=>'Дан'  ] , 'fullName'=>['en'=>'Daniel'          , 'ru'=>'Даниил']];
+
+		case 28: return ['code'=>'hos', 'shortName'=>['en'=>'Hos'   , 'ru'=>'Ос'   ] , 'fullName'=>['en'=>'Hosea'           , 'ru'=>'Осия']];
+		case 29: return ['code'=>'jol', 'shortName'=>['en'=>'Joel'  , 'ru'=>'Иоиль'] , 'fullName'=>['en'=>'Joel'            , 'ru'=>'Иоиль']];
+		case 30: return ['code'=>'amo', 'shortName'=>['en'=>'Amos'  , 'ru'=>'Амос' ] , 'fullName'=>['en'=>'Amos'            , 'ru'=>'Амос']];
+		case 31: return ['code'=>'oba', 'shortName'=>['en'=>'Obad'  , 'ru'=>'Авд'  ] , 'fullName'=>['en'=>'Obadiah'         , 'ru'=>'Авдий']];
+		case 32: return ['code'=>'jon', 'shortName'=>['en'=>'Jon'   , 'ru'=>'Иона' ] , 'fullName'=>['en'=>'Jonah'           , 'ru'=>'Иона']];
+		case 33: return ['code'=>'mic', 'shortName'=>['en'=>'Mic'   , 'ru'=>'Мих'  ] , 'fullName'=>['en'=>'Micah'           , 'ru'=>'Михей']];
+		case 34: return ['code'=>'nam', 'shortName'=>['en'=>'Nahum' , 'ru'=>'Наум' ] , 'fullName'=>['en'=>'Nahum'           , 'ru'=>'Наум']];
+		case 35: return ['code'=>'hab', 'shortName'=>['en'=>'Hab'   , 'ru'=>'Авв'  ] , 'fullName'=>['en'=>'Habakkuk'        , 'ru'=>'Аввакум']];
+		case 36: return ['code'=>'zep', 'shortName'=>['en'=>'Zeph'  , 'ru'=>'Соф'  ] , 'fullName'=>['en'=>'Zephaniah'       , 'ru'=>'Софония']];
+		case 37: return ['code'=>'hag', 'shortName'=>['en'=>'Hag'   , 'ru'=>'Агг'  ] , 'fullName'=>['en'=>'Haggai'          , 'ru'=>'Аггей']];
+		case 38: return ['code'=>'zec', 'shortName'=>['en'=>'Zech'  , 'ru'=>'Зах'  ] , 'fullName'=>['en'=>'Zechariah'       , 'ru'=>'Захария']];
+		case 39: return ['code'=>'mal', 'shortName'=>['en'=>'Mal'   , 'ru'=>'Мал'  ] , 'fullName'=>['en'=>'Malachi'         , 'ru'=>'Малахия']];
+
+		case 40: return ['code'=>'mat', 'shortName'=>['en'=>'Mt'    , 'ru'=>'Мф'   ] , 'fullName'=>['en'=>'Matthew'         , 'ru'=>'Евангелие от Матфея']];
+		case 41: return ['code'=>'mrk', 'shortName'=>['en'=>'Mk'    , 'ru'=>'Мк'   ] , 'fullName'=>['en'=>'Mark'            , 'ru'=>'Евангелие от Марка']];
+		case 42: return ['code'=>'luk', 'shortName'=>['en'=>'Lk'    , 'ru'=>'Лк'   ] , 'fullName'=>['en'=>'Luke'            , 'ru'=>'Евангелие от Луки']];
+		case 43: return ['code'=>'jhn', 'shortName'=>['en'=>'Jn'    , 'ru'=>'Ин'   ] , 'fullName'=>['en'=>'John'            , 'ru'=>'Евангелие от Иоанна']];
+		case 44: return ['code'=>'act', 'shortName'=>['en'=>'Acts'  , 'ru'=>'Деян' ] , 'fullName'=>['en'=>'Acts'            , 'ru'=>'Деяния апостолов']];
+
+		case 45: return ['code'=>'jas', 'shortName'=>['en'=>'Jas'   , 'ru'=>'Иак'  ] , 'fullName'=>['en'=>'James'           , 'ru'=>'Иакова']];
+		case 46: return ['code'=>'1pe', 'shortName'=>['en'=>'1Pet'  , 'ru'=>'1Пет' ] , 'fullName'=>['en'=>'1 Peter'         , 'ru'=>'1 Петра']];
+		case 47: return ['code'=>'2pe', 'shortName'=>['en'=>'2Pet'  , 'ru'=>'2Пет' ] , 'fullName'=>['en'=>'2 Peter'         , 'ru'=>'2 Петра']];
+		case 48: return ['code'=>'1jn', 'shortName'=>['en'=>'1Jn'   , 'ru'=>'1Ин'  ] , 'fullName'=>['en'=>'1 John'          , 'ru'=>'1 Иоанна']];
+		case 49: return ['code'=>'2jn', 'shortName'=>['en'=>'2Jn'   , 'ru'=>'2Ин'  ] , 'fullName'=>['en'=>'2 John'          , 'ru'=>'2 Иоанна']];
+		case 50: return ['code'=>'3jn', 'shortName'=>['en'=>'3Jn'   , 'ru'=>'3Ин'  ] , 'fullName'=>['en'=>'3 John'          , 'ru'=>'3 Иоанна']];
+		case 51: return ['code'=>'jud', 'shortName'=>['en'=>'Jude'  , 'ru'=>'Иуд'  ] , 'fullName'=>['en'=>'Jude'            , 'ru'=>'Иуды']];
+
+		case 52: return ['code'=>'rom', 'shortName'=>['en'=>'Rom'   , 'ru'=>'Рим'  ] , 'fullName'=>['en'=>'Romans'          , 'ru'=>'Римлянам']];
+		case 53: return ['code'=>'1co', 'shortName'=>['en'=>'1Cor'  , 'ru'=>'1Кор' ] , 'fullName'=>['en'=>'1 Corinthians'   , 'ru'=>'1 Коринфянам']];
+		case 54: return ['code'=>'2co', 'shortName'=>['en'=>'2Cor'  , 'ru'=>'2Кор' ] , 'fullName'=>['en'=>'2 Corinthians'   , 'ru'=>'2 Коринфянам']];
+		case 55: return ['code'=>'gal', 'shortName'=>['en'=>'Gal'   , 'ru'=>'Гал'  ] , 'fullName'=>['en'=>'Galatians'       , 'ru'=>'Галатам']];
+		case 56: return ['code'=>'eph', 'shortName'=>['en'=>'Eph'   , 'ru'=>'Еф'   ] , 'fullName'=>['en'=>'Ephesians'       , 'ru'=>'Ефесянам']];
+		case 57: return ['code'=>'php', 'shortName'=>['en'=>'Phil'  , 'ru'=>'Фил'  ] , 'fullName'=>['en'=>'Philippians'     , 'ru'=>'Филиппийцам']];
+		case 58: return ['code'=>'col', 'shortName'=>['en'=>'Col'   , 'ru'=>'Кол'  ] , 'fullName'=>['en'=>'Colossians'      , 'ru'=>'Колоссянам']];
+		case 59: return ['code'=>'1th', 'shortName'=>['en'=>'1Thess', 'ru'=>'1Фес' ] , 'fullName'=>['en'=>'1 Thessalonians' , 'ru'=>'1 Фессалоникийцам']];
+		case 60: return ['code'=>'2th', 'shortName'=>['en'=>'2Thess', 'ru'=>'2Фес' ] , 'fullName'=>['en'=>'2 Thessalonians' , 'ru'=>'2 Фессалоникийцам']];
+		case 61: return ['code'=>'1ti', 'shortName'=>['en'=>'1Tim'  , 'ru'=>'1Тим' ] , 'fullName'=>['en'=>'1 Timothy'       , 'ru'=>'1 Тимофею']];
+		case 62: return ['code'=>'2ti', 'shortName'=>['en'=>'2Tim'  , 'ru'=>'2Тим' ] , 'fullName'=>['en'=>'2 Timothy'       , 'ru'=>'2 Тимофею']];
+		case 63: return ['code'=>'tit', 'shortName'=>['en'=>'Tit'   , 'ru'=>'Тит'  ] , 'fullName'=>['en'=>'Titus'           , 'ru'=>'Титу']];
+		case 64: return ['code'=>'phm', 'shortName'=>['en'=>'Philem', 'ru'=>'Флм'  ] , 'fullName'=>['en'=>'Philemon'        , 'ru'=>'Филимону']];
+		case 65: return ['code'=>'heb', 'shortName'=>['en'=>'Heb'   , 'ru'=>'Евр'  ] , 'fullName'=>['en'=>'Hebrews'         , 'ru'=>'Евреям']];
+
+		case 66: return ['code'=>'rev', 'shortName'=>['en'=>'Rev'   , 'ru'=>'Откр' ] , 'fullName'=>['en'=>'Revelation'      , 'ru'=>'Откровение']];
+	}
+	
+	return 'unknown';
+}

@@ -1,5 +1,7 @@
 <?php
 
+require 'include.php';
+
 function determine_translation()
 {
 	global $argv;
@@ -16,7 +18,7 @@ function determine_translation()
 	return $translation;
 }
 
-function determine_voice()
+function determine_voice($translation)
 {
 	global $argv;
 	
@@ -25,17 +27,32 @@ function determine_voice()
 	
 	$voice = $argv[2];
 	
-	$url = get_chapter_audio_url($voice, '01', '01');
+	$url = get_chapter_audio_url($translation, $voice, '01', '01');
 	
 	if ( !file_get_contents($url) )
-		die("Voice not found (example url: $url)");
+		die("Voice not found (example url: $url)\n\n");
 	
 	return $voice;
 }
 
-function get_chapter_audio_url($voice, $book, $chapter)
+function determine_mode()
 {
-	return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
+	global $argv;
+	
+	if ( !isset($argv[3]) )
+		die("Mode is not set (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
+	
+	$mode = $argv[3];
+	
+	if ( !in_array($mode, ['MODE_REPLACE', 'MODE_CHANGE']) )
+		die("Unknown mode: $mode (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
+	
+	return $mode;
+}
+
+function get_chapter_audio_url($translation, $voice, $book, $chapter)
+{
+	return 'https://4bbl.ru/data/' . $translation . '-' .$voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
 }
 
 function get_translation_array($translation)
@@ -46,9 +63,9 @@ function get_translation_array($translation)
 	return $translationArray;
 }
 
-function create_chapter_plain($translationArrayBookChapter, $book_chapter, $chapter)
+function create_chapter_plain($translationArrayBookChapter, $chapter)
 {
-	$filename = 'audio/' . $book_chapter . '.txt';
+	$filename = 'audio/text.txt';
 	
 	$str = "Глава $chapter \n";
 	
@@ -62,13 +79,17 @@ function create_chapter_plain($translationArrayBookChapter, $book_chapter, $chap
 	// print("Plain $filename created\n");
 }
 
-function download_chapter_audio($voice, $book_chapter, $book, $chapter)
+function download_chapter_audio($translation, $voice, $book, $chapter)
 {
-	$filename = 'audio/' . $book_chapter . '.mp3';
+	$filename = "audio/$book/$chapter.mp3";
 	
 	if ( !file_exists($filename) )
 	{
-		$url = get_chapter_audio_url($voice, $book, $chapter);
+		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
+		
+		if ( !file_exists(dirname($filename)) )
+			mkdir(dirname($filename), 0777, true);
+
 		file_put_contents($filename, file_get_contents($url));
 		// print("Audio $filename downloaded\n");
 	}
@@ -77,26 +98,21 @@ function download_chapter_audio($voice, $book_chapter, $book, $chapter)
 	}
 }
 
-function create_chapter_timecodes($book_chapter)
+function create_chapter_timecodes($book, $chapter)
 {
-	$filename = 'audio/' . $book_chapter . '.mp3';
-	
-	
-	
 	$cmd_aenaes = 'docker run --name aenaes --rm --volume "' . __DIR__ . '/audio:/data" aenaes ' .
 		   'python -m aeneas.tools.execute_task ' .
-		   '/data/' . $book_chapter . '.mp3 ' .
-		   '/data/' . $book_chapter . '.txt ' .
+		   "/data/$book/$chapter.mp3 " .
+		   "/data/text.txt " .
 		   '"task_language=rus|os_task_file_format=json|is_text_type=plain" ' .
 		   '/data/timecodes.json ' . 
 		   '--presets-word --rate '
 		   ;
-
 	// echo $cmd_aenaes . "\n";
+	
 	if ( exec($cmd_aenaes , $output) ) { //, $retval
 		
 		foreach ($output as $line) {
-			//print(strpos($line, '[ERRO]') . "\n");
 			if ( strpos($line, '[ERRO]') !== false ) {
 				print_r($output);
 				
@@ -152,63 +168,96 @@ function delete_temporary_files()
 	// print("Temporary files deleted\n");
 }
 
-function create_all_formatted_timecodes($translation, $voice)
+function create_all_formatted_timecodes($mode, $translation, $voice)
 {
-	$filename = "audio/$translation.json";
+	$filename = "audio/$translation-$voice.json";
 	
 	$translationArray = get_translation_array($translation);
 	
+	if ( $mode == 'MODE_CHANGE' & file_exists($filename) )
+		$old_bible = json_decode(file_get_contents($filename), true); // чтоб все не переделывать
+	
 	$bible = [];
-	$bible['code'] = $translation;
 	$bible['books'] = [];
-	// if ( file_exists($filename) )
-		// $bible = json_decode(file_get_contents($filename), true); // чтоб все не переделывать
+	$bible['code'] = $voice;
+	$bible['translation'] = $translation;
+	$translation_info = get_translation_info($translation);
+	$bible['lang'] = $translation_info['lang'];
 	
 	foreach($translationArray['books'] as $book)
 	{
 		$bookCode = $book['id'];
 		
 		//if ( $bookCode < 40 or $bookCode > 43 ) continue; // Только Евангелия
+		//if ( $bookCode < 41 or $bookCode > 41 ) continue;
 		
-		$bookArray = [];
+		$compute_chapters = true;
+		
+		if ( $mode == 'MODE_CHANGE' ) {
+			//попытка найти
+			$old_book = ['chapters' => []];
+			foreach ( $old_bible['books'] as $b ) {
+				if ( $b['id'] == $bookCode ) {
+					$old_book = $b;
+					$compute_chapters = false;
+					break;
+				}
+			}
+			$bookArray = $old_book;
+		}
+		else {
+			$bookArray = [];
+			$bookArray['chapters'] = [];
+		}
 		$bookArray['id'] = $bookCode;
-		$bookArray['chapters'] = [];
+		$book_info = get_book_info($bookCode);
+		$bookArray['code'] = $book_info['code'];
+		$bookArray['shortName'] = $book_info['shortName'][$bible['lang']];
+		$bookArray['fullName'] = $book_info['fullName'][$bible['lang']];
 		
-		// $bible[$bookCode] = [];
+		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
 		
 		print("Book $bookCode ... ");
-		
+	
 		foreach($book['chapters'] as $chapter)
 		{
 			$chapterCode = $chapter['id'];
 			
-			// if ( $chapterCode > 2 ) break;
+			//if ( $chapterCode != 4 ) continue;
 			
-			$book_chapter = str_pad($bookCode, 2, '0', STR_PAD_LEFT) . '_' . str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
+			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
 			
-			create_chapter_plain($chapter['verses'], $book_chapter, $chapterCode);
-			download_chapter_audio($voice, $book_chapter, $bookCode, $chapterCode);
-			create_chapter_timecodes($book_chapter);
-			
-			array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes()]);
-			
+			download_chapter_audio($translation, $voice, $book0, $chapter0);
+			if ( $compute_chapters ) {
+				create_chapter_plain($chapter['verses'], $chapterCode);
+				create_chapter_timecodes($book0, $chapter0);
+				array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes()]);
+			}
 			print("$chapterCode ");
 		}
-		
+	
 		array_push($bible['books'], $bookArray);
 		
+		$filenameB = "audio/$book0/timecodes.json";
+		
+		if ( !file_exists(dirname($filenameB)) )
+			mkdir(dirname($filenameB), 0777, true);
+
+		file_put_contents($filenameB, json_encode($bookArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+			
 		print("Done!\n");
 	}
 	
-	file_put_contents($filename, json_encode($bible, JSON_PRETTY_PRINT));
+	file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 	
 	print("\nResult saved to $filename\n\n");
 }
 
 $translation = determine_translation();
-$voice = determine_voice();
+$voice = determine_voice($translation);
+$mode = determine_mode();
 
-create_all_formatted_timecodes($translation, $voice);
+create_all_formatted_timecodes($mode, $translation, $voice);
 
 delete_temporary_files();
 

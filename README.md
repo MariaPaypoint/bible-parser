@@ -18,6 +18,7 @@ php parse.php syn
 На машине должен быть установлен докер и иметься [образ aeneas](https://github.com/MariaPaypoint/aeneas-docker).
 
 ```
-php timecodes.php syn syn-bondarenko
+php timecodes.php syn bondarenko MODE_REPLACE
+php timecodes.php bti prozorovsky MODE_CHANGE
 ```
 Аудиофайлы и JSON с таймкодами будет сохранен в папке `audio`.
