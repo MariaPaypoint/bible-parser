@@ -2,103 +2,7 @@
 
 require 'include.php';
 
-function determine_translation()
-{
-	global $argv;
-	
-	if ( !isset($argv[1]) )
-		die("\nERROR: Set translation var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
-	
-	$translation = $argv[1];
-	$filename = "bible/$translation.json";
-	
-	if ( !file_exists($filename) )
-		die("Translation not found (expected: $filename)\n\n");
-	
-	return $translation;
-}
-
-function determine_voice($translation)
-{
-	global $argv;
-	
-	if ( !isset($argv[2]) )
-		die("\nERROR: Set voice var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
-	
-	$voice = $argv[2];
-	
-	$url = get_chapter_audio_url($translation, $voice, '01', '01');
-	
-	if ( !file_get_contents($url) )
-		die("Voice not found (example url: $url)\n\n");
-	
-	return $voice;
-}
-
-function determine_mode()
-{
-	global $argv;
-	
-	if ( !isset($argv[3]) )
-		die("Mode is not set (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
-	
-	$mode = $argv[3];
-	
-	if ( !in_array($mode, ['MODE_REPLACE', 'MODE_CHANGE']) )
-		die("Unknown mode: $mode (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
-	
-	return $mode;
-}
-
-function get_chapter_audio_url($translation, $voice, $book, $chapter)
-{
-	return 'https://4bbl.ru/data/' . $translation . '-' .$voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
-}
-
-function get_translation_array($translation)
-{
-	$filename = "bible/$translation.json";
-	$translationArray = json_decode(file_get_contents($filename), true);
-	
-	return $translationArray;
-}
-
-function create_chapter_plain($translationArrayBookChapter, $chapter)
-{
-	$filename = 'audio/text.txt';
-	
-	$str = "Глава $chapter \n";
-	
-	foreach ($translationArrayBookChapter as $verse)
-	{
-		$str .= $verse['text'] . "\n";
-	}
-	
-	file_put_contents($filename, $str);
-	
-	// print("Plain $filename created\n");
-}
-
-function download_chapter_audio($translation, $voice, $book, $chapter)
-{
-	$filename = "audio/$book/$chapter.mp3";
-	
-	if ( !file_exists($filename) )
-	{
-		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
-		
-		if ( !file_exists(dirname($filename)) )
-			mkdir(dirname($filename), 0777, true);
-
-		file_put_contents($filename, file_get_contents($url));
-		// print("Audio $filename downloaded\n");
-	}
-	else {
-		// print("Audio $filename already exists\n");
-	}
-}
-
-function create_chapter_timecodes($book, $chapter)
+function create_chapter_timecodes_aenaes($book, $chapter)
 {
 	$cmd_aenaes = 'docker run --name aenaes --rm --volume "' . __DIR__ . '/audio:/data" aenaes ' .
 		   'python -m aeneas.tools.execute_task ' .
@@ -131,7 +35,7 @@ function create_chapter_timecodes($book, $chapter)
 		print_r($output);
 }
 
-function get_formatted_chapter_timecodes()
+function get_formatted_chapter_timecodes_aenaes()
 {
 	$filenameT = 'audio/timecodes.json';
 	
@@ -157,7 +61,7 @@ function get_formatted_chapter_timecodes()
 	return $formatted;
 }
 
-function delete_temporary_files()
+function delete_temporary_files_aenaes()
 {
 	$filename = 'audio/timecodes.json';
 	if ( file_exists($filename) )
@@ -229,9 +133,9 @@ function create_all_formatted_timecodes($mode, $translation, $voice)
 			
 			download_chapter_audio($translation, $voice, $book0, $chapter0);
 			if ( $compute_chapters ) {
-				create_chapter_plain($chapter['verses'], $chapterCode);
-				create_chapter_timecodes($book0, $chapter0);
-				array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes()]);
+				create_chapter_plain($chapter['verses'], $bookCode, $chapterCode, $bible['lang'], 'audio/text.txt');
+				create_chapter_timecodes_aenaes($book0, $chapter0);
+				array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes_aenaes()]);
 			}
 			print("$chapterCode ");
 		}
@@ -253,12 +157,12 @@ function create_all_formatted_timecodes($mode, $translation, $voice)
 	print("\nResult saved to $filename\n\n");
 }
 
-$translation = determine_translation();
-$voice = determine_voice($translation);
+$translation = determine_audio_translation();
+$voice = determine_voice_4bbl($translation);
 $mode = determine_mode();
 
 create_all_formatted_timecodes($mode, $translation, $voice);
 
-delete_temporary_files();
+delete_temporary_files_aenaes();
 
 print("Success!\n\n");

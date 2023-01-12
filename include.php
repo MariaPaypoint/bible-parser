@@ -95,3 +95,265 @@ function get_book_info($book_index)
 	
 	return 'unknown';
 }
+
+// получение входящих параметров
+
+function determine_audio_translation()
+{
+	global $argv;
+	
+	if ( !isset($argv[1]) )
+		die("\nERROR: Set translation var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
+	
+	$translation = $argv[1];
+	$filename = "bible/$translation.json";
+	
+	if ( !file_exists($filename) )
+		die("Translation not found (expected: $filename)\n\n");
+	
+	return $translation;
+}
+
+function determine_voice_4bbl($translation)
+{
+	global $argv;
+	
+	if ( !isset($argv[2]) )
+		die("\nERROR: Set voice var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
+	
+	$voice = $argv[2];
+	
+	$url = get_chapter_audio_url($translation, $voice, '01', '01');
+	
+	if ( !file_get_contents($url) )
+		die("Voice not found (example url: $url)\n\n");
+	
+	return $voice;
+}
+
+function determine_mode()
+{
+	global $argv;
+	
+	if ( !isset($argv[3]) )
+		die("Mode is not set (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
+	
+	$mode = $argv[3];
+	
+	if ( !in_array($mode, ['MODE_REPLACE', 'MODE_CHANGE']) )
+		die("Unknown mode: $mode (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
+	
+	return $mode;
+}
+
+function determine_step()
+{
+	global $argv;
+	
+	if ( !isset($argv[4]) )
+		die("Step is not set (wait one of: 1, 2)\n\n");
+	
+	$step = $argv[4];
+	
+	if ( !in_array($step, ['1', '2']) )
+		die("Unknown step: $step (wait one of: 1, 2)\n\n");
+	
+	return $step;
+}
+
+// для аудио
+
+
+function get_translation_array($translation)
+{
+	$filename = "bible/$translation.json";
+	$translationArray = json_decode(file_get_contents($filename), true);
+	
+	return $translationArray;
+}
+
+function get_chapter_audio_url($translation, $voice, $book, $chapter)
+{
+	return 'https://4bbl.ru/data/' . $translation . '-' .$voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
+}
+
+function download_chapter_audio($translation, $voice, $book, $chapter)
+{
+	$filename = "audio/mp3/$book/$chapter.mp3";
+	
+	if ( !file_exists($filename) )
+	{
+		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
+		
+		if ( !file_exists(dirname($filename)) )
+			mkdir(dirname($filename), 0777, true);
+
+		file_put_contents($filename, file_get_contents($url));
+		// print("Audio $filename downloaded\n");
+	}
+	else {
+		// print("Audio $filename already exists\n");
+	}
+}
+
+
+
+function get_chapter_name_1($digit) 
+{
+	switch ($digit)
+	{
+		case 1 : return 'первая';
+		case 2 : return 'вторая';
+		case 3 : return 'третья';
+		case 4 : return 'четвертая';
+		case 5 : return 'пятая';
+		case 6 : return 'шестая';
+		case 7 : return 'седьмая';
+		case 8 : return 'восьмая';
+		case 9 : return 'девятая';
+	}
+}
+function get_chapter_name_2($digit) 
+{
+	switch ($digit)
+	{
+		case 10 : return 'десятая';
+		case 11 : return 'одиннадцатая';
+		case 12 : return 'двенадцатая';
+		case 13 : return 'тринадцатая';
+		case 14 : return 'четырнадцатая';
+		case 15 : return 'пятнадцатая';
+		case 16 : return 'шестнадцатая';
+		case 17 : return 'семнадцатая';
+		case 18 : return 'восемнадцатая';
+		case 19 : return 'девятнадцатая';
+	}
+}
+function get_chapter_name_3($digit) 
+{
+	switch ($digit)
+	{
+		case 2 : return 'двадцать';
+		case 3 : return 'тридцать';
+		case 4 : return 'сорок';
+		case 5 : return 'пятьдесят';
+		case 6 : return 'шестьдесят';
+		case 7 : return 'семьдесят';
+		case 8 : return 'восемьдесят';
+		case 9 : return 'девяносто';
+	}
+}
+
+function get_chapter_name($chapter)
+{
+	if ( $chapter <= 9 )
+		return get_chapter_name_1($chapter);
+	
+	if ( $chapter <= 19 )
+		return get_chapter_name_2($chapter);
+	
+	if ( $chapter <= 99 )
+		return get_chapter_name_3( round($chapter / 10) ) . ' ' . get_chapter_name_1($chapter % 10);
+	
+	return 'сто ' . get_chapter_name_3( round($chapter / 10) ) . ' ' . get_chapter_name_1($chapter % 10);
+}
+
+function get_ps_name_1($digit) 
+{
+	switch ($digit)
+	{
+		case 1 : return 'первый';
+		case 2 : return 'второй';
+		case 3 : return 'третий';
+		case 4 : return 'четвертый';
+		case 5 : return 'пятый';
+		case 6 : return 'шестой';
+		case 7 : return 'седьмой';
+		case 8 : return 'восьмой';
+		case 9 : return 'девятый';
+	}
+}
+function get_ps_name_2($digit) 
+{
+	switch ($digit)
+	{
+		case 10 : return 'десятый';
+		case 11 : return 'одиннадцатый';
+		case 12 : return 'двенадцатый';
+		case 13 : return 'тринадцатый';
+		case 14 : return 'четырнадцатый';
+		case 15 : return 'пятнадцатый';
+		case 16 : return 'шестнадцатый';
+		case 17 : return 'семнадцатый';
+		case 18 : return 'восемнадцатый';
+		case 19 : return 'девятнадцатый';
+	}
+}
+
+function get_ps_name($chapter)
+{
+	if ( $chapter <= 9 )
+		return get_ps_name_1($chapter);
+	
+	if ( $chapter <= 19 )
+		return get_ps_name_2($chapter);
+	
+	if ( $chapter <= 99 )
+		return get_chapter_name_3( round($chapter / 10) ) . ' ' . get_ps_name_1($chapter % 10);
+	
+	return 'сто ' . get_chapter_name_3( round($chapter / 10) ) . ' ' . get_ps_name_1($chapter % 10);
+}
+
+function create_chapter_plain($translationArrayBookChapter, $book, $chapter, $lang, $filename)
+{
+	$str = '';
+	
+	if ( $chapter == 1 ) {
+		$book_info = get_book_info($book);
+		// вообще для каждого перевода своя система походу, как чтец называет книги
+		// if ( $book_info['ru_audio'] )
+			// $str .= $book_info['ru_audio'] . ".\n";
+		// else
+			// print_r($book_info);
+			$str .= $book_info['fullName'][$lang] . ".\n";
+	}
+	if ( $book == 19 ) // псалом
+		$str .= 'Псалом ' . get_ps_name($chapter) . ".\n";
+	else
+		$str .= 'Глава ' . get_chapter_name($chapter) . ".\n";
+	
+	foreach ($translationArrayBookChapter as $verse)
+	{
+		$str .= $verse['text'] . "\n";
+	}
+	
+	file_put_contents($filename, $str);
+	
+	// print("Plain $filename created\n");
+}
+
+function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
+{
+	$filename_source = "audio/mp3/$book/$chapter.mp3";
+	$filename_destination = "audio/mfa_input/${book}/${chapter}.wav";
+	
+	if ( !file_exists( $filename_destination) ) 
+	{
+		if ( !file_exists(dirname($filename_destination)) )
+			mkdir(dirname($filename_destination), 0777, true);
+		
+		$cmd_ffmpeg = "docker run --name ffmpeg --rm --volume " . __DIR__ . "/audio:/audio linuxserver/ffmpeg -hide_banner -loglevel error -i /$filename_source /$filename_destination";
+		// echo $cmd_ffmpeg . "\n";
+		
+		if ( exec($cmd_ffmpeg, $output) ) { //, $retval
+			// print("File $filename_destination created\n"); 
+		}
+		else {
+			if ( $output )
+				print_r($output);
+		}
+	}
+	else {
+		// print("File $filename_destination already exists\n");
+	}
+}
