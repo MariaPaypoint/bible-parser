@@ -158,7 +158,7 @@ function step2($mode, $translation, $voice)
 		
 		array_push($bible['books'], $bookArray);
 		
-		$filenameB = "audio/$book0/timecodes.json";
+		$filenameB = "audio/mp3/$book0/timecodes.json";
 		
 		if ( !file_exists(dirname($filenameB)) )
 			mkdir(dirname($filenameB), 0777, true);
@@ -177,15 +177,17 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter)
 {
 	global $entries;
 	
-	$filename_json = "audio/mfa_output/${book}_${chapter}.json";
-	if ( !file_exists($filename_json) ) 
-		die("$filename_json does not exists!\n\n");
+	$filename_json = "audio/mfa_output/${book}/${chapter}.json";
+	if ( !file_exists($filename_json) ) {
+		print("$filename_json does not exists!\n\n");
+		return;
+	}
 	$mfa_json = json_decode(file_get_contents($filename_json), true);
 	$entries = $mfa_json['tiers']['words']['entries'];
 	
-	$filename_text = "audio/mfa_input/${book}_${chapter}.txt";
+	$filename_text = "audio/mfa_input/${book}/${chapter}.txt";
 	if ( !file_exists($filename_text) ) 
-		die("$filename_text does not exists!\n\n");
+		die("$filename_text does not exists!!!\n\n");
 	$lines = file($filename_text);
 	
 	// $textline = implode(" ", $lines);
@@ -266,7 +268,7 @@ function get_interval($line, $offset, $begin, $old_end)
 	
 	array_unshift($entries, $entry);
 	
-	return [trim($line), $b, $old_end + $pause];
+	return [ trim($line), $b, $old_end + $pause/2 ];
 }
 
 $translation = determine_audio_translation();
@@ -281,4 +283,4 @@ else
 	
 //delete_temporary_files_aenaes();
 
-// print("Success!\n\n");
+// print("Success!\n\n"); 
