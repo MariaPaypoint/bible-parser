@@ -1,7 +1,7 @@
 <?php
 
-$books_limit = 3;
-$chapters_limit = 2;
+$books_limit    = 9999;
+$chapters_limit = 9999;
 
 require 'include.php';
 
@@ -155,8 +155,8 @@ function get_all_books($translation)
 		array_push($bible['books'], $bookArray);
 		
 		// добавляем запись по книгам
-		$filename = 'bible' .DIRECTORY_SEPARATOR . $translation . '_' . $book_info['code'] . '.json';
-		file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ));
+		// $filename = 'text' .DIRECTORY_SEPARATOR . $translation . '_' . $book_info['code'] . '.json';
+		// file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ));
 		
 		print " OK\n";
 	}
@@ -165,14 +165,14 @@ function get_all_books($translation)
 }
 
 function prepare_environment() {
-	if (!file_exists('bible')) {
-		mkdir('bible', 0777, true);
+	if (!file_exists('text')) {
+		mkdir('text', 0777, true);
 	}
 }
 
 function save_to_file($translation, $bible) 
 {
-	$filename = 'bible' .DIRECTORY_SEPARATOR . $translation . '.json';
+	$filename = 'text' .DIRECTORY_SEPARATOR . $translation . '.json';
 	file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ));
 
 	print "\nSuccess! File $filename saved.\n\n";

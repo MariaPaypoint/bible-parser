@@ -21,79 +21,79 @@ function get_book_prename($voice, $book_index) {
 			switch ($book_index)
 			{
 				case 1 : return 'Первая книга Моисеева Бытие';
-				case 2 : return '';
-				case 3 : return '';
-				case 4 : return '';
-				case 5 : return '';
+				case 2 : return 'Вторая книга Моисея Исход';
+				case 3 : return 'Третья книга Моисеева Левит';
+				case 4 : return 'Четвертая книга Моисеева Числа';
+				case 5 : return 'Пятая книга Моисеева Второзаконие';
 				
-				case 6 : return '';
-				case 7 : return '';
-				case 8 : return '';
-				case 9 : return '';
+				case 6 : return 'Книга Иисуса Навина';
+				case 7 : return 'Книга судей Израилевых';
+				case 8 : return 'Книга Руфь';
+				case 9 : return 'Первая книга Царств';
 				case 10: return '';
-				case 11: return '';
-				case 12: return '';
-				case 13: return '';
-				case 14: return '';
-				case 15: return '';
-				case 16: return '';
-				case 17: return '';
+				case 11: return 'Третья книга Царств';
+				case 12: return 'Четвертая книга Царств';
+				case 13: return 'Первая книга Паралипоменон';
+				case 14: return 'Вторая книга Паралипоменон';
+				case 15: return 'Книга Ездры';
+				case 16: return 'Книга Неемии';
+				case 17: return 'Книга Есфирь';
 				
-				case 18: return '';
-				case 19: return '';
-				case 20: return '';
-				case 21: return '';
-				case 22: return '';
+				case 18: return 'Книга Иова';
+				case 19: return 'Псалтырь';
+				case 20: return 'Книга Притчей Соломоновых';
+				case 21: return 'Книга Екклесиаста или Проповедника';
+				case 22: return 'Книга Песни Песней Соломона';
 				
-				case 23: return '';
-				case 24: return '';
-				case 25: return '';
-				case 26: return '';
-				case 27: return '';
+				case 23: return 'Книга пророка Исаии';
+				case 24: return 'Книга пророка Иеремии';
+				case 25: return 'Книга Плач Иеремии';
+				case 26: return 'Книга пророка Иезекииля';
+				case 27: return 'Книга пророка Даниила';
 				
-				case 28: return '';
-				case 29: return '';
-				case 30: return '';
-				case 31: return '';
-				case 32: return '';
-				case 33: return '';
-				case 34: return '';
-				case 35: return '';
-				case 36: return '';
-				case 37: return '';
-				case 38: return '';
-				case 39: return '';
+				case 28: return 'Малые пророки. Осия';
+				case 29: return 'Книга пророка Иоиля';
+				case 30: return 'Книга пророка Амоса';
+				case 31: return 'Книга пророка Авдия';
+				case 32: return 'Книга пророка Ионы';
+				case 33: return 'Книга пророка Михея';
+				case 34: return 'Книга пророка Наума';
+				case 35: return 'Книга пророка Аввакума';
+				case 36: return 'Книга пророка Софонии';
+				case 37: return 'Книга пророка Аггея';
+				case 38: return 'Книга пророка Захарии';
+				case 39: return 'Книга пророка Малахии';
 				
-				case 40: return '';
-				case 41: return '';
-				case 42: return '';
-				case 43: return '';
-				case 44: return '';
+				case 40: return 'Евангелие от Матфея';
+				case 41: return 'Евангелие от Марка';
+				case 42: return 'Евангелие от Луки';
+				case 43: return 'Евангелие от Иоанна';
+				case 44: return 'Деяния Святых апостолов';
 				
-				case 45: return '';
-				case 46: return '';
-				case 47: return '';
-				case 48: return '';
-				case 49: return '';
-				case 50: return '';
-				case 51: return '';
+				case 45: return 'Соборные послания Святого апостола Иакова';
+				case 46: return 'Первое соборное послание Святого апостола Петра';
+				case 47: return 'Второе соборное послание Святого апостола Петра';
+				case 48: return 'Первое соборное послание Святого апостола Иоанна Богослова';
+				case 49: return 'Второе соборное послание Святого апостола Иоанна Богослова';
+				case 50: return 'Третье соборное послание Святого апостола Иоанна Богослова';
+				case 51: return 'Соборное послание Святого апостола Иуды';
 				
-				case 52: return '';
-				case 53: return '';
-				case 54: return '';
-				case 55: return '';
-				case 56: return '';
-				case 57: return '';
-				case 58: return '';
-				case 59: return '';
-				case 60: return '';
-				case 61: return '';
-				case 62: return '';
-				case 63: return '';
-				case 64: return '';
-				case 65: return '';
+				case 52: return 'Послание к Римлянам Святого апостола Павла';
+				case 53: return 'Первое послание к Коринфянам Святого апостола Павла';
+				case 54: return 'Второе послание к Коринфянам Святого апостола Павла';
+				case 55: return 'Послание к Галатам Святого апостола Павла';
+				case 56: return 'Послание к Ефесянам Святого апостола Павла';
+				case 57: return 'Послание к Филиппийцам Святого апостола Павла';
+				case 58: return 'Послание к Колоссянам Святого апостола Павла';
+				case 59: return 'Первое послание к Фессалоникийцам Святого апостола Павла';
+				case 60: return 'Второе послание к Фессалоникийцам Святого апостола Павла';
+				case 61: return 'Первое послание к Тимофею Святого апостола Павла';
+				case 62: return 'Второе послание к Тимофею Святого апостола Павла';
+				case 63: return 'Послание к Титу Святого апостола Павла';
+				case 64: return 'Филимону Святого апостола Павла';
+				case 65: return 'Послание к Евреям Святого апостола Павла';
 				
-				case 66: return '';
+				case 66: return 'Откровение Святого Иоанна Богослова';
 			}
 		}
 	}
@@ -194,7 +194,7 @@ function determine_audio_translation()
 		die("\nERROR: Set translation var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
 	
 	$translation = $argv[1];
-	$filename = "bible/$translation.json";
+	$filename = "text/$translation.json";
 	
 	if ( !file_exists($filename) )
 		die("Translation not found (expected: $filename)\n\n");
@@ -254,7 +254,7 @@ function determine_step()
 
 function get_translation_array($translation)
 {
-	$filename = "bible/$translation.json";
+	$filename = "text/$translation.json";
 	$translationArray = json_decode(file_get_contents($filename), true);
 	
 	return $translationArray;
@@ -264,6 +264,7 @@ function get_chapter_name_1($digit)
 {
 	switch ($digit)
 	{
+		case 0 : return '';
 		case 1 : return 'первая';
 		case 2 : return 'вторая';
 		case 3 : return 'третья';
@@ -291,18 +292,18 @@ function get_chapter_name_2($digit)
 		case 19 : return 'девятнадцатая';
 	}
 }
-function get_chapter_name_3($digit) 
+function get_chapter_name_3($digit, $zero) 
 {
 	switch ($digit)
 	{
-		case 2 : return 'двадцать';
-		case 3 : return 'тридцать';
-		case 4 : return 'сорок';
-		case 5 : return 'пятьдесят';
-		case 6 : return 'шестьдесят';
-		case 7 : return 'семьдесят';
-		case 8 : return 'восемьдесят';
-		case 9 : return 'девяносто';
+		case 2 : return $zero ? 'двадцатая'     : 'двадцать';
+		case 3 : return $zero ? 'тридцатая'     : 'тридцать';
+		case 4 : return $zero ? 'сороковая'     : 'сорок';
+		case 5 : return $zero ? 'пятидесятая'   : 'пятьдесят';
+		case 6 : return $zero ? 'шестидесятая'  : 'шестьдесят';
+		case 7 : return $zero ? 'семидесятая'   : 'семьдесят';
+		case 8 : return $zero ? 'восьмидесятая' : 'восемьдесят';
+		case 9 : return $zero ? 'девяностая'    : 'девяносто';
 	}
 }
 
@@ -311,13 +312,14 @@ function get_chapter_name($chapter)
 	if ( $chapter <= 9 )
 		return get_chapter_name_1($chapter);
 	
-	if ( $chapter <= 19 )
+	elseif ( $chapter <= 19 )
 		return get_chapter_name_2($chapter);
 	
-	if ( $chapter <= 99 )
-		return get_chapter_name_3( round($chapter / 10) ) . ' ' . get_chapter_name_1($chapter % 10);
+	elseif ( $chapter == 100 )
+		return 'сотая';
 	
-	return 'сто ' . get_chapter_name_3( round($chapter / 10) ) . ' ' . get_chapter_name_1($chapter % 10);
+	else
+		return ($chapter > 100 ? 'сто ' : '') . get_chapter_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_chapter_name_1($chapter % 10);
 }
 
 function get_ps_name_1($digit) 
@@ -352,18 +354,33 @@ function get_ps_name_2($digit)
 	}
 }
 
+function get_ps_name_3($digit, $zero) 
+{
+	switch ($digit)
+	{
+		case 2 : return $zero ? 'двадцатый'     : 'двадцать';
+		case 3 : return $zero ? 'тридцатый'     : 'тридцать';
+		case 4 : return $zero ? 'сороковой'     : 'сорок';
+		case 5 : return $zero ? 'пятидесятый'   : 'пятьдесят';
+		case 6 : return $zero ? 'шестидесятый'  : 'шестьдесят';
+		case 7 : return $zero ? 'семидесятый'   : 'семьдесят';
+		case 8 : return $zero ? 'восьмидесятый' : 'восемьдесят';
+		case 9 : return $zero ? 'девяностый'    : 'девяносто';
+	}
+}
 function get_ps_name($chapter)
 {
 	if ( $chapter <= 9 )
 		return get_ps_name_1($chapter);
 	
-	if ( $chapter <= 19 )
+	elseif ( $chapter <= 19 )
 		return get_ps_name_2($chapter);
 	
-	if ( $chapter <= 99 )
-		return get_chapter_name_3( round($chapter / 10) ) . ' ' . get_ps_name_1($chapter % 10);
+	elseif ( $chapter == 100 )
+		return 'сотый';
 	
-	return 'сто ' . get_chapter_name_3( round($chapter / 10) ) . ' ' . get_ps_name_1($chapter % 10);
+	else
+		return ($chapter > 100 ? 'сто ' : '') . get_ps_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_ps_name_1($chapter % 10);
 }
 
 function create_chapter_plain($voice, $translationArrayBookChapter, $book, $chapter, $lang, $filename)

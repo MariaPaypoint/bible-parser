@@ -1,7 +1,7 @@
 <?php
 
-$books_limit = 20;
-$chapters_limit = 30;
+$books_limit    = 9999;
+$chapters_limit = 9999;
 
 require 'include.php';
 
