@@ -1,103 +1,17 @@
 <?php
 
-$books_limit = 200;
-$chapters_limit = 1000;
+$books_limit = 20;
+$chapters_limit = 30;
 
 require 'include.php';
 
-function mfa_align_all($mode, $translation, $voice)
-{
-	global $books_limit;
-	// $cmd_mfa = 'docker exec -it mfa bash -c "conda activate aligner && ' . 
-	           // 'mfa models download dictionary russian_mfa && ' .
-			   // 'mfa models download acoustic russian_mfa && ' .
-			   // 'mfa align --output_format json /audio/mfa_input russian_mfa russian_mfa /audio/mfa_output"';
-	// очистим папку вывода
-	array_map('unlink', glob('audio/mfa_output/*'));
-	
-	// запустим/перезапустим контейнер с mfa
-	$cmd_mfa = 'docker rm -f mfa && docker run -it -d --name mfa --volume "' . __DIR__ . '/audio:/audio" mfa:latest ';
-	
-	if ( exec($cmd_mfa , $output) ) { //, $retval
-		
-		$aligns = '';
-		for ( $book=1; $book<=min(66, $books_limit); $book++ ) {
-			$book0 = str_pad($book, 2, '0', STR_PAD_LEFT);
-			$aligns .= " && mfa align --clean --overwrite --output_format json /audio/mfa_input/$book0 russian_mfa russian_mfa /audio/mfa_output/$book0 --beam 20 --retry_beam 80";
-		}
-		// автоматизировать сложновато https://pythonspeed.com/articles/activate-conda-dockerfile/
-		print("\n");
-		print('PLEASE, RUN MANUAL: ' . "\n");
-		print('    docker exec -it mfa bash' . "\n");
-		print("    conda activate aligner && mfa models download dictionary russian_mfa && mfa models download acoustic russian_mfa $aligns && exit \n");
-		print('AFTER THAT, DO THE SECOND STEP:' . "\n");
-		print("    php82 timecodes_mfa.php $translation $voice $mode 2 \n\n");
-	}
-	else {
-		print_r($output);
-		die();
-	}
-}
-
-function delete_temporary_files_aenaes()
-{
-	$filename = 'audio/timecodes.json';
-	if ( file_exists($filename) )
-		unlink($filename);
-	
-	array_map('unlink', glob('audio/*.txt'));
-	
-	// print("Temporary files deleted\n");
-}
-
-function step1($mode, $translation, $voice)
-{
-	global $books_limit, $chapters_limit;
-
-	$translationArray = get_translation_array($translation);
-	
-	$translation_info = get_translation_info($translation);
-	$lang = $translation_info['lang'];
-	
-	foreach($translationArray['books'] as $book)
-	{
-		$bookCode = $book['id'];
-		
-		if ( $bookCode > $books_limit ) continue;
-		
-		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
-		
-		print("Book $bookCode ... ");
-	
-		// скачивание mp3 и конверт в wav 
-		foreach ( $book['chapters'] as $chapter )
-		{
-			$chapterCode = $chapter['id'];
-			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
-			
-			if ( $chapterCode > $chapters_limit ) continue;
-			
-			download_chapter_audio($translation, $voice, $book0, $chapter0);
-			convert_mp3_to_vaw($translation, $voice, $book0, $chapter0);
-			create_chapter_plain($chapter['verses'], $bookCode, $chapterCode, $lang, "audio/mfa_input/${book0}/${chapter0}.txt");
-			
-			print("$chapterCode ");
-		}
-		
-		print("Done!\n");
-	}
-	
-	print("All files prepared. \n");
-	
-	// массовое преобразование
-	mfa_align_all($mode, $translation, $voice);
-}
-
-function step2($mode, $translation, $voice)
+function format_all($translation, $voice, $mode)
 {
 	global $books_limit, $chapters_limit;
 	
-	$filename = "audio/$translation-$voice.json";
+	print("\nFORMATTING:\n");
+	
+	$filename = "audio/$translation/$voice/timecodes.json";
 	
 	$translationArray = get_translation_array($translation);
 	
@@ -120,22 +34,23 @@ function step2($mode, $translation, $voice)
 		
 		$compute_chapters = true;
 		
-		if ( $mode == 'MODE_CHANGE' ) {
-			//попытка найти
-			$old_book = ['chapters' => []];
-			foreach ( $old_bible['books'] as $b ) {
-				if ( $b['id'] == $bookCode ) {
-					$old_book = $b;
-					$compute_chapters = false;
-					break;
-				}
-			}
-			$bookArray = $old_book;
-		}
-		else {
+		// не нужно, т.к. переформатирование недолгое, а выравнивание старое берем
+		// if ( $mode == 'MODE_CHANGE' ) {
+			// попытка найти
+			// $old_book = ['chapters' => []];
+			// foreach ( $old_bible['books'] as $b ) {
+				// if ( $b['id'] == $bookCode ) {
+					// $old_book = $b;
+					// $compute_chapters = false;
+					// break;
+				// }
+			// }
+			// $bookArray = $old_book;
+		// }
+		// else {
 			$bookArray = [];
 			$bookArray['chapters'] = [];
-		}
+		// }
 		$bookArray['id'] = $bookCode;
 		$book_info = get_book_info($bookCode);
 		$bookArray['code'] = $book_info['code'];
@@ -144,7 +59,7 @@ function step2($mode, $translation, $voice)
 		
 		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
 		
-		print("Book $bookCode ... ");
+		print("Book $book0 ... ");
 	
 		foreach($book['chapters'] as $chapter) {
 			$chapterCode = $chapter['id'];
@@ -153,17 +68,17 @@ function step2($mode, $translation, $voice)
 			
 			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
 			
-			array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes_mfa($book0, $chapter0)]);
+			array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes_mfa($book0, $chapter0, $translation, $voice)]);
 		}
 		
 		array_push($bible['books'], $bookArray);
 		
-		$filenameB = "audio/mp3/$book0/timecodes.json";
+		// $filenameB = "audio/$translation/$voice/mp3/$book0/timecodes.json";
 		
-		if ( !file_exists(dirname($filenameB)) )
-			mkdir(dirname($filenameB), 0777, true);
+		// if ( !file_exists(dirname($filenameB)) )
+			// mkdir(dirname($filenameB), 0777, true);
 
-		file_put_contents($filenameB, json_encode($bookArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+		// file_put_contents($filenameB, json_encode($bookArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 			
 		print("Done!\n");
 	}
@@ -173,11 +88,11 @@ function step2($mode, $translation, $voice)
 	print("\nResult saved to $filename\n\n");
 }
 
-function get_formatted_chapter_timecodes_mfa($book, $chapter) 
+function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voice) 
 {
 	global $entries;
 	
-	$filename_json = "audio/mfa_output/${book}/${chapter}.json";
+	$filename_json = "audio/$translation/$voice/mfa_output/${book}/${chapter}.json";
 	if ( !file_exists($filename_json) ) {
 		print("$filename_json does not exists!\n\n");
 		return;
@@ -185,33 +100,10 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter)
 	$mfa_json = json_decode(file_get_contents($filename_json), true);
 	$entries = $mfa_json['tiers']['words']['entries'];
 	
-	$filename_text = "audio/mfa_input/${book}/${chapter}.txt";
+	$filename_text = "audio/$translation/$voice/mfa_input/${book}/${chapter}.txt";
 	if ( !file_exists($filename_text) ) 
 		die("$filename_text does not exists!!!\n\n");
 	$lines = file($filename_text);
-	
-	// $textline = implode(" ", $lines);
-	// $textline = str_replace("\n", "", $textline);
-	// $textline = preg_replace('/[^\p{L}\p{N}\s]/u', '', $textline);
-	// $textwords = explode(" ", mb_strtolower($textline, 'UTF-8'));
-	
-	// foreach ( $entries as $entry ) {
-		// $begin = $entry[0];
-		// $end = $entry[1];
-		// $entryword = $entry[2];
-		
-		// if ( $entryword == '' ) continue;
-		
-		// $textword = array_shift($textwords);
-		
-		// if ( $textword != $entryword ) {
-			// print("$textword != $entryword");
-			// die();
-		// }
-		
-		// print("entryword: $entryword, textword: $textword, begin: $begin, end: $end \n");
-		// break;
-	// }
 	
 	$formatted = [];
 	$cc = 0;
@@ -271,16 +163,159 @@ function get_interval($line, $offset, $begin, $old_end)
 	return [ trim($line), $b, $old_end + $pause/2 ];
 }
 
+function mfa_align_all($translation, $voice, $mode)
+{
+	global $books_limit;
+	
+	print "\nALIGNING:\n" ;
+	
+	$mfa_output_dir = "audio/$translation/$voice/mfa_output";
+	$mfa_input_dir  = "audio/$translation/$voice/mfa_input";
+	
+	// очистим/пересоздадим папку вывода
+	if ( $mode == 'MODE_REPLACE' ) 
+	{
+		rmdir_recursive();
+		mkdir($mfa_output_dir, 0777, true);
+		chmod($mfa_output_dir, 0777);
+		
+		print "All output files cleaned\n";
+	}
+	
+	// подготовка контейнера
+	$container_exist = exec('docker exec -it mfa echo 1');
+	if ( $container_exist ) 
+	{
+		print "Container mfa already exists.\n";
+		print "If you want, you can drop it manually [docker rm -f mfa] and repeat operation.\n\n";
+	}
+	else
+	{
+		exec_and_print('docker run -it -d --name mfa --volume "' . __DIR__ . '/audio:/audio" mmcauliffe/montreal-forced-aligner:v2.2.17');
+		exec_and_print('docker exec -it mfa bash -c "mfa models download dictionary russian_mfa --version v2.0.0a"');
+		exec_and_print('docker exec -it mfa bash -c "mfa models download acoustic russian_mfa --version v2.0.0a"');
+	}
+	
+	// выравнивание
+	for ( $book=1; $book<=min(66, $books_limit); $book++ ) {
+		$book0 = str_pad($book, 2, '0', STR_PAD_LEFT);
+		
+		if ( is_dir("$mfa_input_dir/$book0") )
+		{
+			// так может уже и не надо ничего делать?
+			if ( is_output_full("$mfa_input_dir/$book0", "$mfa_output_dir/$book0") )
+			{
+				print "$mfa_output_dir/$book0 already is full, skipped\n";
+				continue;
+			}
+			if ( !is_dir("$mfa_output_dir/$book0") )
+			{
+				mkdir("$mfa_output_dir/$book0", 0777, true);
+				chmod("$mfa_output_dir/$book0", 0777);
+			}
+			exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 russian_mfa russian_mfa /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
+		}
+	}
+
+	print("All files aligned. \n");
+}
+
+function is_output_full($in_dir, $out_dir)
+{
+	if ( !is_dir($out_dir) )
+		return False;
+	
+	$in_files = scandir($in_dir);
+	$filtered_in_files = array_filter($in_files, function($value) {
+		return strripos($value, 'wav');
+	});
+	// print_r($filtered_in_files);
+	// die();
+	$out_files = scandir($out_dir);
+	foreach ( $filtered_in_files as $in_file )
+	{
+		$out_file = str_replace('.wav', '.json', $in_file);
+		if ( !in_array($out_file, $out_files) )
+			return False;
+	}
+	return True;
+}
+
+function prepare_files($translation, $voice, $mode)
+{
+	global $books_limit, $chapters_limit;
+
+	print "\nPREPARING:\n" ;
+	
+	$translationArray = get_translation_array($translation);
+	
+	$translation_info = get_translation_info($translation);
+	$lang = $translation_info['lang'];
+	
+	foreach($translationArray['books'] as $book)
+	{
+		$bookCode = $book['id'];
+		
+		if ( $bookCode > $books_limit ) continue;
+		
+		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
+		
+		print("Book $book0 ... ");
+	
+		foreach ( $book['chapters'] as $chapter )
+		{
+			$chapterCode = $chapter['id'];
+			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
+			
+			if ( $chapterCode > $chapters_limit ) continue;
+			
+			// скачивание mp3
+			download_chapter_audio($translation, $voice, $book0, $chapter0, $mode);
+			// конверт в wav 
+			convert_mp3_to_vaw($translation, $voice, $book0, $chapter0, $mode);
+			// подготовка текста
+			create_chapter_plain($voice, $chapter['verses'], $bookCode, $chapterCode, $lang, "audio/$translation/$voice/mfa_input/${book0}/${chapter0}.txt");
+			
+			print("$chapterCode ");
+		}
+		
+		print("Done!\n");
+	}
+	
+	print("All files prepared. \n");
+}
+
+function prepare_environment($translation, $voice) 
+{
+	if ( !file_exists("audio/$translation/$voice/mfa_input") ) 
+	{
+		mkdir("audio/$translation/$voice/mfa_input", 0777, true);
+		chmod("audio/$translation/$voice/mfa_input", 0777);
+	}
+	
+	if ( !file_exists('audio/mfa_output') ) 
+	{
+		mkdir("audio/$translation/$voice/mfa_output", 0777, true);
+		chmod("audio/$translation/$voice/mfa_output", 0777);
+	}
+}
+
+function do_all($translation, $voice, $mode)
+{
+	prepare_environment($translation, $voice);
+	
+	prepare_files($translation, $voice, $mode);
+	
+	// массовое выравнивание
+	mfa_align_all($translation, $voice, $mode);
+	
+	// преобразование результатов 
+	format_all($translation, $voice, $mode);
+}
+
 $translation = determine_audio_translation();
 $voice = determine_voice_4bbl($translation);
 $mode = determine_mode();
-$step = determine_step();
+// $step = determine_step();
 
-if ( $step == 1 )
-	step1($mode, $translation, $voice);
-else
-	step2($mode, $translation, $voice);
-	
-//delete_temporary_files_aenaes();
-
-// print("Success!\n\n"); 
+do_all($translation, $voice, $mode);

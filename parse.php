@@ -1,5 +1,8 @@
 <?php
 
+$books_limit = 3;
+$chapters_limit = 2;
+
 require 'include.php';
 
 setlocale(LC_ALL, 'ru_RU.utf8');
@@ -25,31 +28,79 @@ function determine_translation()
 	return $translation;
 }
 
-function get_chapter($doc, $book) 
-{	
-	$result = [];
-	$id = 1; 
+function get_note_text($doc, $note_number) 
+{
+	$link = $doc->getElementById("n$note_number");
+	$fullText = $link->parentNode->textContent; # 26 [1] — В знач.: «человеческий род»; евр. ада́м.
 	
-	while ( $element = $doc->getElementById($id) ) {
-		
+	if ( preg_match('/^\d+ \[\d+\] — (.+)$/', $fullText, $matches, PREG_OFFSET_CAPTURE) )
+		return $matches[1][0];
+	else 
+		return "Error in note searching";
+}
+
+function get_chapter($doc, $book, $chapter_id) 
+{	
+	$verses = [];
+	$notes = [];
+	
+	$id = 1;
+	while ( $element = $doc->getElementById($id) ) 
+	{
 		$sub = $element->childNodes->item(0)->textContent;
-		$text = '';
+		$htmlText = '';
+		$unformatedText = '';
 		for ( $counter = 1; $counter < $element->childNodes->length; $counter ++ )
 		{
-			$value = $element->childNodes->item($counter)->textContent;
-			if ( (string)intval($value) !== $value )
-				$text .= $value;
+			$textContent = $element->childNodes->item($counter)->textContent;
+			$nodeName = $element->childNodes->item($counter)->nodeName;
+			
+			// разбираем форматирование
+			if ( $nodeName == '#text' )      # обычный текст
+			{
+				$htmlText .= $textContent;
+				$unformatedText .= $textContent;
+			}
+			elseif ( $nodeName == 'em' )     # курсив
+			{
+				$htmlText .= "<em>$textContent</em>";
+				$unformatedText .= $textContent;
+			}
+			elseif ( $nodeName == 'span' )   # сноска?
+			{
+				if ( preg_match('/^\[(\d+)\]$/', $textContent, $matches, PREG_OFFSET_CAPTURE) ) 
+				{
+					$note_number = $matches[1][0];
+					array_push($notes, [
+						'id'           => intval($note_number), 
+						'text'         => trim(get_note_text($doc, $note_number)),
+						'verse_number' => intval($sub),
+						'position'     => mb_strlen(trim($unformatedText))
+					]);
+				}
+			}
+			else                             # что-то новенькое
+			{
+				print $nodeName . " NOT FOUND LOGIC!\n";
+				print $counter . ':['. $textContent . "]\n";
+				print_r($element->childNodes->item($counter));
+			}
+			
+			// if ( (string)intval($textContent) !== $textContent )
+				// $text .= $textContent;
 		}
-		array_push($result, ['id'=>intval($sub), 'text'=>trim($text)]);
+		array_push($verses, ['id'=>intval($sub), 'text'=>trim($htmlText)]);
 		
 		$id++;
 	}
-	
-	return $result;
+	return ['id' => $chapter_id, 'verses' => $verses, 'notes' => $notes];
 }
 
 function get_all_books($translation) 
 {
+	global $books_limit;
+	global $chapters_limit;
+	
 	$doc = new DOMDocument();
 	$bible = [];
 	$bible['code'] = $translation;
@@ -63,7 +114,7 @@ function get_all_books($translation)
 	{
 		$book++;
 		
-		//if ( $book > 2 ) break; // отладка
+		if ( $book > $books_limit ) break; // отладка
 		// if ( $book < 40 ) continue; // Только НЗ
 		// if ( $book > 43 ) break; // Только Евангелия
 		
@@ -73,7 +124,7 @@ function get_all_books($translation)
 			break;
 		print "Book $book. Chapters: ";
 		
-		$chapter = 0;
+		$chapter_id = 0;
 		$bookArray = [];
 		$bookArray['id'] = $book;
 		$book_info = get_book_info($book);
@@ -85,17 +136,17 @@ function get_all_books($translation)
 		
 		while ( True ) 
 		{
-			$chapter++;
+			$chapter_id++;
 			
-			//if ( $chapter > 2 ) break; // отладка
+			if ( $chapter_id > $chapters_limit ) break; // отладка
 			
-			$doc->loadHTMLFile("https://bible.by/$translation/$book/$chapter/");
+			$doc->loadHTMLFile("https://bible.by/$translation/$book/$chapter_id/");
 			if ( strpos($doc->textContent, WRONG_TEXT) )
 				break;
 			
-			print " $chapter";
+			print " $chapter_id";
 			
-			$chapterArray = ['id' => $chapter, 'verses' => get_chapter($doc, $book, $chapter)];
+			$chapterArray = get_chapter($doc, $book, $chapter_id);
 			
 			array_push($bookArray['chapters'], $chapterArray);
 			
@@ -109,17 +160,31 @@ function get_all_books($translation)
 		
 		print " OK\n";
 	}
+	
 	return $bible;
 }
+
+function prepare_environment() {
+	if (!file_exists('bible')) {
+		mkdir('bible', 0777, true);
+	}
+}
+
+function save_to_file($translation, $bible) 
+{
+	$filename = 'bible' .DIRECTORY_SEPARATOR . $translation . '.json';
+	file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ));
+
+	print "\nSuccess! File $filename saved.\n\n";
+}
+
+prepare_environment();
 
 $translation = determine_translation();
 
 print "\nStart $translation downloading\n\n";
 
 $bible = get_all_books($translation);
-$filename = 'bible' .DIRECTORY_SEPARATOR . $translation . '.json';
-file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT ));
-
-print "\nDone! File $filename saved.\n\n";
+save_to_file($translation, $bible);
 
 ?>

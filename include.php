@@ -13,6 +13,94 @@ function get_translation_info($translation)
 	return '';
 }
 
+function get_book_prename($voice, $book_index) {
+	switch ($voice)
+	{
+		case 'bondarenko':
+		{
+			switch ($book_index)
+			{
+				case 1 : return 'Первая книга Моисеева Бытие';
+				case 2 : return '';
+				case 3 : return '';
+				case 4 : return '';
+				case 5 : return '';
+				
+				case 6 : return '';
+				case 7 : return '';
+				case 8 : return '';
+				case 9 : return '';
+				case 10: return '';
+				case 11: return '';
+				case 12: return '';
+				case 13: return '';
+				case 14: return '';
+				case 15: return '';
+				case 16: return '';
+				case 17: return '';
+				
+				case 18: return '';
+				case 19: return '';
+				case 20: return '';
+				case 21: return '';
+				case 22: return '';
+				
+				case 23: return '';
+				case 24: return '';
+				case 25: return '';
+				case 26: return '';
+				case 27: return '';
+				
+				case 28: return '';
+				case 29: return '';
+				case 30: return '';
+				case 31: return '';
+				case 32: return '';
+				case 33: return '';
+				case 34: return '';
+				case 35: return '';
+				case 36: return '';
+				case 37: return '';
+				case 38: return '';
+				case 39: return '';
+				
+				case 40: return '';
+				case 41: return '';
+				case 42: return '';
+				case 43: return '';
+				case 44: return '';
+				
+				case 45: return '';
+				case 46: return '';
+				case 47: return '';
+				case 48: return '';
+				case 49: return '';
+				case 50: return '';
+				case 51: return '';
+				
+				case 52: return '';
+				case 53: return '';
+				case 54: return '';
+				case 55: return '';
+				case 56: return '';
+				case 57: return '';
+				case 58: return '';
+				case 59: return '';
+				case 60: return '';
+				case 61: return '';
+				case 62: return '';
+				case 63: return '';
+				case 64: return '';
+				case 65: return '';
+				
+				case 66: return '';
+			}
+		}
+	}
+	
+	return '';
+}
+
 function get_book_info($book_index)
 {
 	switch ($book_index)
@@ -172,32 +260,6 @@ function get_translation_array($translation)
 	return $translationArray;
 }
 
-function get_chapter_audio_url($translation, $voice, $book, $chapter)
-{
-	return 'https://4bbl.ru/data/' . $translation . '-' .$voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
-}
-
-function download_chapter_audio($translation, $voice, $book, $chapter)
-{
-	$filename = "audio/mp3/$book/$chapter.mp3";
-	
-	if ( !file_exists($filename) )
-	{
-		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
-		
-		if ( !file_exists(dirname($filename)) )
-			mkdir(dirname($filename), 0777, true);
-
-		file_put_contents($filename, file_get_contents($url));
-		// print("Audio $filename downloaded\n");
-	}
-	else {
-		// print("Audio $filename already exists\n");
-	}
-}
-
-
-
 function get_chapter_name_1($digit) 
 {
 	switch ($digit)
@@ -304,7 +366,7 @@ function get_ps_name($chapter)
 	return 'сто ' . get_chapter_name_3( round($chapter / 10) ) . ' ' . get_ps_name_1($chapter % 10);
 }
 
-function create_chapter_plain($translationArrayBookChapter, $book, $chapter, $lang, $filename)
+function create_chapter_plain($voice, $translationArrayBookChapter, $book, $chapter, $lang, $filename)
 {
 	$str = '';
 	
@@ -315,7 +377,8 @@ function create_chapter_plain($translationArrayBookChapter, $book, $chapter, $la
 			// $str .= $book_info['ru_audio'] . ".\n";
 		// else
 			// print_r($book_info);
-			$str .= $book_info['fullName'][$lang] . ".\n";
+		$prename = get_book_prename($voice, $book);
+		$str .= ($prename ? $prename : $book_info['fullName'][$lang]) . ".\n";
 	}
 	if ( $book == 19 ) // псалом
 		$str .= 'Псалом ' . get_ps_name($chapter) . ".\n";
@@ -332,12 +395,44 @@ function create_chapter_plain($translationArrayBookChapter, $book, $chapter, $la
 	// print("Plain $filename created\n");
 }
 
-function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
+function get_chapter_audio_url($translation, $voice, $book, $chapter)
 {
-	$filename_source = "audio/mp3/$book/$chapter.mp3";
-	$filename_destination = "audio/mfa_input/${book}/${chapter}.wav";
+	return 'https://4bbl.ru/data/' . $translation . '-' .$voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
+}
+
+function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
+{
+	$filename = "audio/$translation/$voice/mp3/$book/$chapter.mp3";
 	
-	if ( !file_exists( $filename_destination) ) 
+	if ( !file_exists($filename) or $mode == 'MODE_REPLACE' )
+	{
+		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
+		
+		if ( !file_exists(dirname($filename)) )
+			mkdir(dirname($filename), 0755, true);
+
+		file_put_contents($filename, file_get_contents($url));
+		// print("Audio $filename downloaded\n");
+	}
+	else {
+		// print("Audio $filename already exists\n");
+	}
+}
+
+function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
+{
+	$filename_source = "audio/$translation/$voice/mp3/$book/$chapter.mp3";
+	$filename_destination = "audio/$translation/$voice/mfa_input/${book}/${chapter}.wav";
+	
+	$file_exists = file_exists($filename_destination);
+	
+	if ( $file_exists and $mode == 'MODE_REPLACE' )
+	{
+		unlink($filename_destination);
+		// print "File $filename_destination deleted\n";
+	}
+	
+	if ( !$file_exists or $mode == 'MODE_REPLACE' ) 
 	{
 		if ( !file_exists(dirname($filename_destination)) )
 			mkdir(dirname($filename_destination), 0777, true);
@@ -345,7 +440,8 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
 		$cmd_ffmpeg = "docker run --name ffmpeg --rm --volume " . __DIR__ . "/audio:/audio linuxserver/ffmpeg -hide_banner -loglevel error -i /$filename_source /$filename_destination";
 		// echo $cmd_ffmpeg . "\n";
 		
-		if ( exec($cmd_ffmpeg, $output) ) { //, $retval
+		$exec_result = exec($cmd_ffmpeg, $output, $retval);
+		if ( $exec_result or $retval==0 ) { //
 			// print("File $filename_destination created\n"); 
 		}
 		else {
@@ -356,4 +452,37 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
 	else {
 		// print("File $filename_destination already exists\n");
 	}
+}
+
+function rmdir_recursive($path) {
+	if (is_file($path)) return unlink($path);
+	if (is_dir($path)) {
+		foreach(scandir($path) as $p) if (($p!='.') && ($p!='..'))
+			rmdir_recursive($path.DIRECTORY_SEPARATOR.$p);
+		return rmdir($path); 
+    }
+	return false;
+}
+
+function exec_and_print($cmd, $return_error=False) 
+{
+	print "CMD: $cmd...";
+	
+	$result = exec($cmd, $output);
+	
+	print ($result ? "OK" : "ERROR") . "\n";
+	foreach($output as $str) {
+		print "    " . $str . "\n\n";
+	}
+	
+	if ( $result )
+		return True;
+	else
+	{
+		if ( $return_error )
+			return False;
+		else
+			die();
+	}
+
 }
