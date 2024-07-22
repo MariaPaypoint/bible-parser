@@ -1,11 +1,11 @@
-# Требования к установленному ПО
+# 1. Требования к установленному ПО
 
 - docker
 - php 8.2 (возможно будет работать и на более новых версиях)
 
-# Сборка текстов и аудио Библии
+# 2. Сборка текстов и аудио Библии
 
-## 1. Скачивание текста перевода
+## 2.1. Скачивание текста перевода
 
 Скрипт нужен для того, чтобы скачать разные версии переводов Библии с сайта bible.by
 
@@ -16,7 +16,7 @@ php parse.php syn
 
 Результат будет скачен с ресурса https://bible.by/syn/ в виде файла JSON и сохранен в директории `bible`.
 
-## 2. Добавление таймкодов к аудио (через MFA)
+## 2.2. Добавление таймкодов к аудио (через MFA)
 
 Использует [MontrealCorpusTools](https://github.com/MontrealCorpusTools/) для принудительного выравнивания. 
 
@@ -30,20 +30,53 @@ php82 timecodes_mfa.php syn bondarenko MODE_CHANGE
 
 JSON с таймкодами будет сохранен в папке `audio`.
 
-Скрипт занимает по несколько часов на каждую версию озвучки.
+Скрипт выполняется по несколько часов на каждую версию озвучки.
 
-## 3. Сохранение текстов и ссылок в БД
+## 2.3. Сохранение текстов и ссылок в БД
+
+Первый параметр означает тип экспорта и может представлять один из вариантов:
+- `TEXT` - сохранение текстовой версии
+- `TIMECODES` - сохранение таймкодов
 
 Сохранение текста:
 ```
-php save_to_db.php syn
+php save_to_db.php TEXT syn
+```
+Сохранение выравнивания:
+```
+php save_to_db.php TIMECODES syn bondarenko
 ```
 
-Сохранение выравнивания ожидает реализации.
+# 3. Возможно пригодятся команды
+
+## 3.1. Ручной запуск выравнивания
+
+Иногда так бывает, что команда mfa часть файлов внаглую пропускает и даже ошибок не выдает. 
+Можно доделать их вручную. 
+
+3.1.1. Запуск контейнера для ручного выравнивания (но вообще-то он остается и так запущенным после скрипта timecodes_mfa.php):
+```
+docker run -it -d --name mfa --volume "/path/to/audio:/audio" mmcauliffe/montreal-forced-aligner:v2.2.17
+docker exec -it mfa bash -c "mfa models download dictionary russian_mfa --version v2.0.0a"
+docker exec -it mfa bash -c "mfa models download acoustic russian_mfa --version v2.0.0a"
+```
+
+3.1.2. Выравнивание директории:
+```
+docker exec -it mfa bash -c "mfa align --clean --overwrite --output_format json /audio/test_in russian_mfa russian_mfa /audio/test_out --beam 20 --retry_beam 80"
+```
+
+3.1.3. Сбор результатов:
+- закомментировать строку `mfa_align_all($translation, $voice, $mode);` в `timecodes_mfa.php`
+- запустить сборку `php82 timecodes_mfa.php syn bondarenko MODE_CHANGE`
+- раскомментрировать обратно указанную строку
+
+## 3.2. Полезные ссылки на документацию:
+- [https://montreal-forced-aligner.readthedocs.io/en/latest/user_guide/workflows/alignment.html#pretrained-alignment](Страница доки MFA по команде выравнивания)
 
 -------------------------------------------------------------
 
-## 2a. Добавление таймкодов к аудио (через aenaes)
+## 2-aльтернатива. Добавление таймкодов к аудио (через aenaes, устар.)
 
 Выравнивает плюс-минус километр. Лучше использовать MFA (см. выше).
 
@@ -54,8 +87,8 @@ php save_to_db.php syn
 
 Примеры:
 ```
-php timecodes.php syn bondarenko MODE_REPLACE
-php timecodes.php bti prozorovsky MODE_CHANGE
+php timecodes_aenaes.php syn bondarenko MODE_REPLACE
+php timecodes_aenaes.php bti prozorovsky MODE_CHANGE
 ```
 Аудиофайлы и JSON с таймкодами будет сохранен в папке `audio`.
 

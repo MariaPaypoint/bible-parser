@@ -157,7 +157,7 @@ function create_all_formatted_timecodes($mode, $translation, $voice)
 	print("\nResult saved to $filename\n\n");
 }
 
-$translation = determine_audio_translation();
+$translation = determine_text_translation();
 $voice = determine_voice_4bbl($translation);
 $mode = determine_mode();
 

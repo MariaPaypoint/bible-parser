@@ -307,13 +307,13 @@ function do_all($translation, $voice, $mode)
 	prepare_files($translation, $voice, $mode);
 	
 	// массовое выравнивание
-	mfa_align_all($translation, $voice, $mode);
+	// mfa_align_all($translation, $voice, $mode);
 	
 	// преобразование результатов 
 	format_all($translation, $voice, $mode);
 }
 
-$translation = determine_audio_translation();
+$translation = determine_text_translation();
 $voice = determine_voice_4bbl($translation);
 $mode = determine_mode();
 // $step = determine_step();

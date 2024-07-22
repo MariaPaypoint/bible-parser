@@ -10,7 +10,18 @@ function get_translation_info($translation)
 		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible'];
 	}
 	
-	return '';
+	//return '';
+	die('Incorrect translation.');
+}
+
+function get_voice_info($translation)
+{
+	switch ($translation)
+	{
+		case 'bondarenko' : return ['name'=>'Александр Бондаренко', 'isMusic'=>1, 'description'=>'Текст читает Александр Викторович Бондаренко — украинский актёр театра и кино, народный артист Украины. Жил с нами в период с 1960 по 2013 год. Его голосом не озвучено лишь книги Паралипоменон и Песнь Песней. Эти книги заменены на чтение Игоря Козлова. Особенность этой озвучки — драматическое музыкальное сопровождение.'];
+	}
+	
+	die('Incorrect voice.');
 }
 
 function get_book_prename($voice, $book_index) {
@@ -186,14 +197,14 @@ function get_book_info($book_index)
 
 // получение входящих параметров
 
-function determine_audio_translation()
+function determine_text_translation($position=1)
 {
 	global $argv;
 	
-	if ( !isset($argv[1]) )
+	if ( !isset($argv[$position]) )
 		die("\nERROR: Set translation var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
 	
-	$translation = $argv[1];
+	$translation = $argv[$position];
 	$filename = "text/$translation.json";
 	
 	if ( !file_exists($filename) )
@@ -202,14 +213,14 @@ function determine_audio_translation()
 	return $translation;
 }
 
-function determine_voice_4bbl($translation)
+function determine_voice_4bbl($translation, $position=2)
 {
 	global $argv;
 	
-	if ( !isset($argv[2]) )
+	if ( !isset($argv[$position]) )
 		die("\nERROR: Set voice var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
 	
-	$voice = $argv[2];
+	$voice = $argv[$position];
 	
 	$url = get_chapter_audio_url($translation, $voice, '01', '01');
 	
@@ -219,14 +230,14 @@ function determine_voice_4bbl($translation)
 	return $voice;
 }
 
-function determine_mode()
+function determine_mode($position=3)
 {
 	global $argv;
 	
-	if ( !isset($argv[3]) )
+	if ( !isset($argv[$position]) )
 		die("Mode is not set (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
 	
-	$mode = $argv[3];
+	$mode = $argv[$position];
 	
 	if ( !in_array($mode, ['MODE_REPLACE', 'MODE_CHANGE']) )
 		die("Unknown mode: $mode (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
@@ -234,17 +245,32 @@ function determine_mode()
 	return $mode;
 }
 
-function determine_step()
+function determine_step($position=4)
 {
 	global $argv;
 	
-	if ( !isset($argv[4]) )
+	if ( !isset($argv[$position]) )
 		die("Step is not set (wait one of: 1, 2)\n\n");
 	
-	$step = $argv[4];
+	$step = $argv[$position];
 	
 	if ( !in_array($step, ['1', '2']) )
 		die("Unknown step: $step (wait one of: 1, 2)\n\n");
+	
+	return $step;
+}
+
+function determine_export_type($position=2)
+{
+	global $argv;
+	
+	if ( !isset($argv[$position]) )
+		die("Export type is not set (wait one of: TEXT, TIMECODES)\n\n");
+	
+	$step = $argv[$position];
+	
+	if ( !in_array($step, ['TEXT', 'TIMECODES']) )
+		die("Unknown export type: $step (wait one of: TEXT, TIMECODES)\n\n");
 	
 	return $step;
 }
@@ -258,6 +284,14 @@ function get_translation_array($translation)
 	$translationArray = json_decode(file_get_contents($filename), true);
 	
 	return $translationArray;
+}
+
+function get_voice_array($translation, $voice)
+{
+	$filename = "audio/$translation/$voice/timecodes.json";
+	$voiceArray = json_decode(file_get_contents($filename), true);
+	
+	return $voiceArray;
 }
 
 function get_chapter_name_1($digit) 
@@ -404,7 +438,7 @@ function create_chapter_plain($voice, $translationArrayBookChapter, $book, $chap
 	
 	foreach ($translationArrayBookChapter as $verse)
 	{
-		$str .= $verse['text'] . "\n";
+		$str .= $verse['unformatedText'] . "\n";
 	}
 	
 	file_put_contents($filename, $str);

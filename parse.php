@@ -89,7 +89,7 @@ function get_chapter($doc, $book, $chapter_id)
 			// if ( (string)intval($textContent) !== $textContent )
 				// $text .= $textContent;
 		}
-		array_push($verses, ['id'=>intval($sub), 'text'=>trim($htmlText)]);
+		array_push($verses, ['id'=>intval($sub), 'htmlText'=>trim($htmlText), 'unformatedText'=>trim($unformatedText)]);
 		
 		$id++;
 	}
