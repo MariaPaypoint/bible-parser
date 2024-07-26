@@ -48,6 +48,7 @@ function get_chapter($doc, $book, $chapter_id)
 	while ( $element = $doc->getElementById($id) ) 
 	{
 		$sub = $element->childNodes->item(0)->textContent;
+		$start_paragraph = $element->getAttribute('class') == 'paragraph' ? 1 : 0;
 		$htmlText = '';
 		$unformatedText = '';
 		for ( $counter = 1; $counter < $element->childNodes->length; $counter ++ )
@@ -66,6 +67,10 @@ function get_chapter($doc, $book, $chapter_id)
 				$htmlText .= "<em>$textContent</em>";
 				$unformatedText .= $textContent;
 			}
+			elseif ( $nodeName == 'br' )     # разрыв строки - пока не знаю что с ним делать
+			{
+				continue;
+			}
 			elseif ( $nodeName == 'span' )   # сноска?
 			{
 				if ( preg_match('/^\[(\d+)\]$/', $textContent, $matches, PREG_OFFSET_CAPTURE) ) 
@@ -81,15 +86,22 @@ function get_chapter($doc, $book, $chapter_id)
 			}
 			else                             # что-то новенькое
 			{
-				print $nodeName . " NOT FOUND LOGIC!\n";
-				print $counter . ':['. $textContent . "]\n";
+				print "NOT FOUND LOGIC!\n";
+				print "chapter: [$counter], verse_number: [$sub], nodeName: [$nodeName], text: [$textContent]\n";
 				print_r($element->childNodes->item($counter));
+				// print_r($notes);
+				die();
 			}
 			
 			// if ( (string)intval($textContent) !== $textContent )
 				// $text .= $textContent;
 		}
-		array_push($verses, ['id'=>intval($sub), 'htmlText'=>trim($htmlText), 'unformatedText'=>trim($unformatedText)]);
+		array_push($verses, [
+			'id'              => intval($sub), 
+			'htmlText'        => trim($htmlText), 
+			'unformatedText'  => trim($unformatedText),
+			'start_paragraph' => $start_paragraph
+		]);
 		
 		$id++;
 	}

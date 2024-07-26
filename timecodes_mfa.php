@@ -307,7 +307,7 @@ function do_all($translation, $voice, $mode)
 	prepare_files($translation, $voice, $mode);
 	
 	// массовое выравнивание
-	// mfa_align_all($translation, $voice, $mode);
+	mfa_align_all($translation, $voice, $mode);
 	
 	// преобразование результатов 
 	format_all($translation, $voice, $mode);

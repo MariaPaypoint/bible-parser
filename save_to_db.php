@@ -266,15 +266,17 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 {
 	$str = '';
 	foreach ( $voiceArray['books'] as $book ) {
+		// if ($book['id'] >= 2) break;
 		$book_code = $books_codes[$book['id']];
 		foreach ( $book['chapters'] as $chapter ) {
+			// if ($chapter['id'] >= 2) break;
 			// косяки выравнивания выявляем
 			if ( !$chapter['verses'] )
 				print "Error: book $book[id] / chapter $chapter[id] is empty!\n";
 			else
 				foreach ( $chapter['verses'] as $verse ) {
 					$bible_verse = $verses_codes[$book_code][$chapter['id']][$verse['id']];
-					$str .= "($voice_code, $bible_verse, $verse[begin], $verse[end], NULL),\n";
+					$str .= "($voice_code, $bible_verse, $verse[begin], $verse[end], NULL),";
 				}
 		}
 	}
@@ -285,6 +287,7 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 		VALUES
 		  $str
 	";
+	// print $query;
 	$mysqli->query($query);
 	printf("Затронутые строки (INSERT/audio_alignments): %d\n", $mysqli->affected_rows);
 }

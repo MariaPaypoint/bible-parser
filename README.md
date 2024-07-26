@@ -63,7 +63,7 @@ docker exec -it mfa bash -c "mfa models download acoustic russian_mfa --version 
 
 3.1.2. Выравнивание директории:
 ```
-docker exec -it mfa bash -c "mfa align --clean --overwrite --output_format json /audio/test_in russian_mfa russian_mfa /audio/test_out --beam 20 --retry_beam 80"
+docker exec -it mfa bash -c "mfa align --clean --overwrite --output_format json /audio/test_in russian_mfa russian_mfa /audio/test_out --beam 40 --retry_beam 160"
 ```
 
 3.1.3. Сбор результатов:
