@@ -448,7 +448,7 @@ function create_chapter_plain($voice, $translationArrayBookChapter, $book, $chap
 
 function get_chapter_audio_url($translation, $voice, $book, $chapter)
 {
-	return 'https://4bbl.ru/data/' . $translation . '-' .$voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
+	return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
 }
 
 function download_chapter_audio($translation, $voice, $book, $chapter, $mode)

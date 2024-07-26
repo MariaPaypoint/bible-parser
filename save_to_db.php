@@ -31,11 +31,10 @@ function clear_db_text($mysqli, $translation_code)
 function save_text_chapter_verses($mysqli, $book_code, $chapter) 
 {
 	$verses_str = '';
-	foreach ( $chapter['verses'] as $verse ) {
-		$start_paragraph = 0; // !!!!!!!!!!!!!! дописать логику
-		
+	foreach ( $chapter['verses'] as $verse ) 
+	{
 		$verses_str .= sprintf(
-			"($verse[id], $chapter[id], $book_code, '%s', $start_paragraph),",
+			"($verse[id], $chapter[id], $book_code, '%s', $verse[start_paragraph]),",
 			$mysqli->real_escape_string($verse['htmlText'])
 		);
 	}

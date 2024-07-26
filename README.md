@@ -21,11 +21,11 @@ php parse.php syn
 Использует [MontrealCorpusTools](https://github.com/MontrealCorpusTools/) для принудительного выравнивания. 
 
 ```
-php82 timecodes_mfa.php syn bondarenko MODE_CHANGE
+php82 timecodes_mfa.php syn syn-bondarenko MODE_CHANGE
 ```
 
 Последний аргумент используется для определения поведения в случае наличия файлов:
-- `MODE_REPLACE` - все файлы будут удалены, заново скачаны и выровнены
+- `MODE_REPLACE` - все файлы будут удалены, заново скачаны и выровнены (плохо протестированный вариант)
 - `MODE_CHANGE` - имеющиеся файлы не будут качаться заново; полностью выровненные книги будут пропущены (экономит время для случаев, когда предыдущий запуск скрипта выпадал)
 
 JSON с таймкодами будет сохранен в папке `audio`.
@@ -44,7 +44,7 @@ php save_to_db.php TEXT syn
 ```
 Сохранение выравнивания:
 ```
-php save_to_db.php TIMECODES syn bondarenko
+php save_to_db.php TIMECODES nrt new-russian
 ```
 
 # 3. Возможно пригодятся команды
@@ -68,7 +68,7 @@ docker exec -it mfa bash -c "mfa align --clean --overwrite --output_format json 
 
 3.1.3. Сбор результатов:
 - закомментировать строку `mfa_align_all($translation, $voice, $mode);` в `timecodes_mfa.php`
-- запустить сборку `php82 timecodes_mfa.php syn bondarenko MODE_CHANGE`
+- запустить сборку `php82 timecodes_mfa.php syn syn-bondarenko MODE_CHANGE`
 - раскомментрировать обратно указанную строку
 
 ## 3.2. Полезные ссылки на документацию:
@@ -87,7 +87,7 @@ docker exec -it mfa bash -c "mfa align --clean --overwrite --output_format json 
 
 Примеры:
 ```
-php timecodes_aenaes.php syn bondarenko MODE_REPLACE
+php timecodes_aenaes.php syn syn-bondarenko MODE_REPLACE
 php timecodes_aenaes.php bti prozorovsky MODE_CHANGE
 ```
 Аудиофайлы и JSON с таймкодами будет сохранен в папке `audio`.
