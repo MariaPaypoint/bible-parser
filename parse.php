@@ -71,6 +71,10 @@ function get_chapter($doc, $book, $chapter_id)
 			{
 				continue;
 			}
+			elseif ( $nodeName == 'e' )     # скорее всего слово, к которому примечание (см. стих 20 тут https://bible.by/nrt/13/15/)
+			{
+				continue;
+			}
 			elseif ( $nodeName == 'span' )   # сноска?
 			{
 				if ( preg_match('/^\[(\d+)\]$/', $textContent, $matches, PREG_OFFSET_CAPTURE) ) 
@@ -87,7 +91,7 @@ function get_chapter($doc, $book, $chapter_id)
 			else                             # что-то новенькое
 			{
 				print "NOT FOUND LOGIC!\n";
-				print "chapter: [$counter], verse_number: [$sub], nodeName: [$nodeName], text: [$textContent]\n";
+				print "chapter: [$chapter_id], verse_number: [$sub], nodeName: [$nodeName], text: [$textContent]\n";
 				print_r($element->childNodes->item($counter));
 				// print_r($notes);
 				die();
