@@ -300,9 +300,10 @@ function prepare_environment($translation, $voice)
 	}
 }
 
-function check_all($translation, $voice) 
+function check_all($translation, $voice, $try) 
 {
-	print "Checking alignment results...\n";
+	global $books_limit;
+	print "Checking alignment results, try $try...\n";
 	
 	$errors_count = 0;
 	$fix_count = 0;
@@ -321,6 +322,7 @@ function check_all($translation, $voice)
 	// косяки выравнивания выявляем и копируем файлы
 	foreach ( $translationArray['books'] as $book )
 	{
+		if ( $book['id'] > $books_limit ) break;
 		$book0 = str_pad($book['id'], 2, '0', STR_PAD_LEFT);
 		foreach ( $book['chapters'] as $chapter ) 
 		{
@@ -329,14 +331,10 @@ function check_all($translation, $voice)
 			if ( !file_exists("audio/$translation/$voice/mfa_output/$book0/$chapter0.json") ) 
 			{
 				print "Error: book $book[id] / chapter $chapter[id] is empty!\n";
-				// print "audio/$translation/$voice/mfa_output/$book0/$chapter0.json\n";
-				
 				
 				// копируем файлы
-				// copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.wav", "$mfa_input_dir/{$book0}_$chapter0.wav");
+				copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.wav", "$mfa_input_dir/{$book0}_$chapter0.wav");
 				copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.txt", "$mfa_input_dir/{$book0}_$chapter0.txt");
-				
-				// die();
 				
 				$errors_count += 1;
 			}
@@ -346,13 +344,16 @@ function check_all($translation, $voice)
 	if ( $errors_count > 0 )
 	{
 		print "\n";
-		// exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam 40 --retry_beam 160'");
+		$retry_beam = $try*100;
+		exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam 40 --retry_beam $retry_beam'");
 		foreach ( scandir($mfa_output_dir) as $f ) 
 			if ( $f != '.' and $f != '..' )
 			{
 				$fix_count += 1;
+				list($book0, $chapter0) = explode('_', explode('.', $f)[0]);
+				
 				copy("$mfa_output_dir/{$book0}_$chapter0.json", "audio/$translation/$voice/mfa_output/$book0/$chapter0.json");
-				print "Fixed: book $book[id] / chapter $chapter[id] fixed\n";
+				print "Fixed: book {$book0} / chapter $chapter0 fixed\n";
 			}
 	}
 	
@@ -365,13 +366,17 @@ function do_all($translation, $voice, $mode)
 {
 	// prepare_environment($translation, $voice);
 	
+	// скачивание
 	// prepare_files($translation, $voice, $mode);
 	
-	// массовое выравнивание
+	// выравнивание
 	// mfa_align_all($translation, $voice, $mode);
 	
 	// проверка результатов
-	check_all($translation, $voice);
+	for ( $try=1; $try<=10; $try++ ) 
+	{
+		if ( check_all($translation, $voice, $try) ) break;
+	}
 	
 	// преобразование результатов 
 	// format_all($translation, $voice, $mode);

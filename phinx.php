@@ -1,5 +1,7 @@
 <?php
 
+require "config.php";
+
 return
 [
     'paths' => [
@@ -8,32 +10,14 @@ return
     ],
     'environments' => [
         'default_migration_table' => 'phinxlog',
-        'default_environment' => 'development',
-        'production' => [
+        'default_environment' => 'default',
+        'default' => [
             'adapter' => 'mysql',
-            'host' => 'localhost',
-            'name' => 'production_db',
-            'user' => 'root',
-            'pass' => '',
-            'port' => '3306',
-            'charset' => 'utf8',
-        ],
-        'development' => [
-            'adapter' => 'mysql',
-            'host' => 'localhost',
-            'name' => 'development_db',
-            'user' => 'root',
-            'pass' => '',
-            'port' => '3306',
-            'charset' => 'utf8',
-        ],
-        'testing' => [
-            'adapter' => 'mysql',
-            'host' => 'localhost',
-            'name' => 'testing_db',
-            'user' => 'root',
-            'pass' => '',
-            'port' => '3306',
+            'host' => MYSQL_HOST,
+            'name' => MYSQL_SCHEMA,
+            'user' => MYSQL_USER,
+            'pass' => MYSQL_PASSWORD,
+            'port' => MYSQL_PORT,
             'charset' => 'utf8',
         ]
     ],

@@ -312,7 +312,8 @@ function save_timecodes_to_db($mysqli, $translation, $voice)
 $export_type = determine_export_type(1);
 $translation = determine_text_translation(2);
 
-$mysqli = new mysqli("127.0.0.1", "root", "XSNx0evIpDBXUPSthhHq", "bible_pause", "3307");
+
+$mysqli = get_db_cursor();
 
 if ( $export_type == 'TEXT' )
 	save_text_to_db($mysqli, $translation, $export_type);

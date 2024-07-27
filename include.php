@@ -1,5 +1,13 @@
 <?php
 
+require "config.php";
+
+function get_db_cursor()
+{
+	$mysqli = new mysqli(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_SCHEMA, MYSQL_PORT);
+	return $mysqli;
+}
+
 function get_translation_info($translation)
 {
 	switch ($translation)
