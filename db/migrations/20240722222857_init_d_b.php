@@ -84,7 +84,7 @@ final class InitDB extends AbstractMigration
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
         $this->execute("CREATE TABLE `keyword_values` (
-  		  `inc` INT NOT NULL,
+  		  `inc` INT NOT NULL AUTO_INCREMENT,
   		  `group_alias` VARCHAR(50) NOT NULL,
       		  `lang` VARCHAR(10) NULL,
  		  `alias` VARCHAR(50) NOT NULL,
