@@ -86,6 +86,7 @@ final class InitDB extends AbstractMigration
         $this->execute("CREATE TABLE `keyword_values` (
   		  `inc` INT NOT NULL,
   		  `group_alias` VARCHAR(50) NOT NULL,
+      		  `lang` VARCHAR(10) NULL,
  		  `alias` VARCHAR(50) NOT NULL,
  		  `name` VARCHAR(1000) NOT NULL,
  		  `description` VARCHAR(1000) NULL,
