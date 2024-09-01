@@ -94,7 +94,15 @@ final class InitDB extends AbstractMigration
     		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
 
-	    
+        $this->execute("CREATE TABLE `audio_books` (
+  		  `inc` INT NOT NULL,
+  		  `bible_book` INT NULL,
+  		  `audio_voice` INT NULL,
+  		  `link_template` VARCHAR(1000) NULL DEFAULT 'https://site/{book_alias}/{chapter_zerofill}.mp3',
+  		  PRIMARY KEY (`inc`)
+  		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+		");
+
 
     }
 }
