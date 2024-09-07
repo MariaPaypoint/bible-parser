@@ -83,12 +83,27 @@ final class InitDB extends AbstractMigration
 		  CONSTRAINT `audio_alignments_audio_voice` FOREIGN KEY (`audio_voice`) REFERENCES `audio_voices` (`code`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
+		
         $this->execute("CREATE TABLE IF NOT EXISTS `bible_titles` (
 		  `code` int NOT NULL AUTO_INCREMENT,
 		  `before_bible_verse` int NOT NULL,
 		  `text` varchar(1000) NOT NULL,
 		  PRIMARY KEY (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=446 DEFAULT CHARSET=utf8mb3;
+		");
+        $this->execute("CREATE TABLE `keyword_values` (
+  		  `inc` INT NOT NULL AUTO_INCREMENT,
+  		  `group_alias` VARCHAR(50) NOT NULL,
+      		  `lang` VARCHAR(10) NULL,
+ 		  `alias` VARCHAR(50) NOT NULL,
+ 		  `name` VARCHAR(1000) NOT NULL,
+ 		  `description` VARCHAR(1000) NULL,
+ 		  PRIMARY KEY (`inc`)
+    		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+		");
+
+        $this->execute("ALTER TABLE `bible_pause`.`audio_voices` 
+ 		  ADD COLUMN `link_template` VARCHAR(1000) NULL AFTER `is_music`;
 		");
     }
 }
