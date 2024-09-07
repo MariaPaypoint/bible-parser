@@ -15,7 +15,8 @@ final class InitDB extends AbstractMigration
 		  PRIMARY KEY (`alias`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
-		$this->execute("CREATE TABLE IF NOT EXISTS `bible_translations` (
+
+		$this->execute("CREATE TABLE IF NOT EXISTS `translations` (
 		  `code` int NOT NULL AUTO_INCREMENT,
 		  `alias` varchar(50) NOT NULL,
 		  `name` varchar(255) NOT NULL,
@@ -23,75 +24,78 @@ final class InitDB extends AbstractMigration
 		  `language` varchar(10) NOT NULL,
 		  PRIMARY KEY (`code`),
 		  KEY `language_idx` (`language`),
-		  CONSTRAINT `bible_translations_language` FOREIGN KEY (`language`) REFERENCES `languages` (`alias`)
+		  CONSTRAINT `translations_language` FOREIGN KEY (`language`) REFERENCES `languages` (`alias`)
 		) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3;
 		");
-		$this->execute("CREATE TABLE IF NOT EXISTS `bible_books` (
+		$this->execute("CREATE TABLE IF NOT EXISTS `translation_books` (
 		  `code` int NOT NULL AUTO_INCREMENT,
 		  `book_number` smallint NOT NULL COMMENT 'from table dict_universal_books',
-		  `bible_translation` int NOT NULL,
+		  `translation` int NOT NULL,
 		  `name` varchar(255) NOT NULL,
 		  PRIMARY KEY (`code`),
-		  KEY `bible_translation_idx` (`bible_translation`),
-		  CONSTRAINT `bible_books_bible_translation` FOREIGN KEY (`bible_translation`) REFERENCES `bible_translations` (`code`)
+		  KEY `translation_idx` (`translation`),
+		  CONSTRAINT `translation_books_translation` FOREIGN KEY (`translation`) REFERENCES `translations` (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=263 DEFAULT CHARSET=utf8mb3;
 		");
-		$this->execute("CREATE TABLE IF NOT EXISTS `bible_verses` (
+		$this->execute("CREATE TABLE IF NOT EXISTS `translation_verses` (
 		  `code` int NOT NULL AUTO_INCREMENT,
 		  `verse_number` smallint NOT NULL,
 		  `chapter_number` smallint NOT NULL,
-		  `bible_book` int NOT NULL,
+		  `translation_book` int NOT NULL,
 		  `text` varchar(10000) NOT NULL,
 		  `start_paragraph` tinyint(1) NOT NULL,
 		  PRIMARY KEY (`code`),
-		  KEY `bible_book_idx` (`bible_book`),
-		  CONSTRAINT `bible_verses_bible_book` FOREIGN KEY (`bible_book`) REFERENCES `bible_books` (`code`)
+		  KEY `translation_book_idx` (`translation_book`),
+		  CONSTRAINT `translation_verses_translation_book` FOREIGN KEY (`translation_book`) REFERENCES `translation_books` (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=109329 DEFAULT CHARSET=utf8mb3;
 		");
-		$this->execute("CREATE TABLE IF NOT EXISTS `bible_notes` (
+		$this->execute("CREATE TABLE IF NOT EXISTS `translation_notes` (
 		  `code` int NOT NULL AUTO_INCREMENT,
-		  `bible_verse` int NOT NULL,
+		  `translation_verse` int NOT NULL,
 		  `position` smallint NOT NULL,
 		  `note_number` int NOT NULL,
 		  `text` varchar(10000) NOT NULL,
 		  PRIMARY KEY (`code`),
-		  KEY `bible_verse_idx` (`bible_verse`),
-		  CONSTRAINT `bible_notes_bible_verse` FOREIGN KEY (`bible_verse`) REFERENCES `bible_verses` (`code`)
+		  KEY `translation_verse_idx` (`translation_verse`),
+		  CONSTRAINT `translation_notes_translation_verse` FOREIGN KEY (`translation_verse`) REFERENCES `translation_verses` (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb3;
 		");
-		$this->execute("CREATE TABLE IF NOT EXISTS `audio_voices` (
+		$this->execute("CREATE TABLE IF NOT EXISTS `translation_titles` (
+			`code` int NOT NULL AUTO_INCREMENT,
+			`before_translation_verse` int NOT NULL,
+			`text` varchar(1000) NOT NULL,
+			PRIMARY KEY (`code`)
+		) ENGINE=InnoDB AUTO_INCREMENT=446 DEFAULT CHARSET=utf8mb3;
+		");
+
+		$this->execute("CREATE TABLE IF NOT EXISTS `voices` (
 		  `code` int NOT NULL AUTO_INCREMENT,
 		  `alias` varchar(50) NOT NULL,
 		  `name` varchar(255) NOT NULL,
 		  `description` varchar(1000) DEFAULT NULL,
-		  `bible_translation` int NOT NULL,
+		  `translation` int NOT NULL,
 		  `is_music` tinyint(1) NOT NULL,
+		  `link_template` VARCHAR(1000) NULL,
 		  PRIMARY KEY (`code`),
-		  KEY `bible_translation_idx` (`bible_translation`),
-		  CONSTRAINT `audio_voices_bible_translation` FOREIGN KEY (`bible_translation`) REFERENCES `bible_translations` (`code`)
+		  KEY `translation_idx` (`translation`),
+		  CONSTRAINT `voices_translation` FOREIGN KEY (`translation`) REFERENCES `translations` (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb3;
 		");
-        $this->execute("CREATE TABLE IF NOT EXISTS `audio_alignments` (
+
+        $this->execute("CREATE TABLE IF NOT EXISTS `voice_alignments` (
 		  `code` int NOT NULL AUTO_INCREMENT,
-		  `audio_voice` int NOT NULL,
-		  `bible_verse` int NOT NULL,
+		  `voice` int NOT NULL,
+		  `translation_verse` int NOT NULL,
 		  `begin` float NOT NULL,
 		  `end` float NOT NULL,
 		  `is_correct` tinyint(1) DEFAULT NULL,
 		  PRIMARY KEY (`code`),
-		  KEY `audio_alignments_audio_voice_idx` (`audio_voice`),
-		  CONSTRAINT `audio_alignments_audio_voice` FOREIGN KEY (`audio_voice`) REFERENCES `audio_voices` (`code`)
+		  KEY `voice_alignments_voice_idx` (`voice`),
+		  CONSTRAINT `voice_alignments_voice` FOREIGN KEY (`voice`) REFERENCES `voices` (`code`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
-		
-        $this->execute("CREATE TABLE IF NOT EXISTS `bible_titles` (
-		  `code` int NOT NULL AUTO_INCREMENT,
-		  `before_bible_verse` int NOT NULL,
-		  `text` varchar(1000) NOT NULL,
-		  PRIMARY KEY (`code`)
-		) ENGINE=InnoDB AUTO_INCREMENT=446 DEFAULT CHARSET=utf8mb3;
-		");
-        $this->execute("CREATE TABLE `keyword_values` (
+
+        $this->execute("CREATE TABLE `keywords` (
   		  `inc` INT NOT NULL AUTO_INCREMENT,
   		  `group_alias` VARCHAR(50) NOT NULL,
       		  `lang` VARCHAR(10) NULL,
@@ -102,8 +106,6 @@ final class InitDB extends AbstractMigration
     		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
 
-        $this->execute("ALTER TABLE `bible_pause`.`audio_voices` 
- 		  ADD COLUMN `link_template` VARCHAR(1000) NULL AFTER `is_music`;
-		");
+       
     }
 }
