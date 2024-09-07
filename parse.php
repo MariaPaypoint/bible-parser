@@ -1,7 +1,7 @@
 <?php
 
-$books_limit    = 9999;
-$chapters_limit = 9999;
+$books_limit    = 999;
+$chapters_limit = 999;
 
 require 'include.php';
 
@@ -39,7 +39,44 @@ function get_note_text($doc, $note_number)
 		return "Error in note searching";
 }
 
-function get_chapter($doc, $book, $chapter_id) 
+function get_titles($doc)
+{
+	$titles = [];
+	
+	$parentNode = $doc->getElementById("1")->parentNode;
+	
+	for ( $counter = 1; $counter < $parentNode->childNodes->length; $counter ++ )
+	{
+		$titles_element = $parentNode->childNodes->item($counter);
+		if ( !method_exists($titles_element, 'getAttribute') )
+			continue;
+		if ( $titles_element->getAttribute('class') == 'top-paragraph' )
+		{
+			for ( $counter_titles = 1; $counter_titles < $titles_element->childNodes->length; $counter_titles ++ )
+			{
+				$title_element = $titles_element->childNodes->item($counter_titles); // это может быть номер стиха, а может быть и текст заголовка
+				
+				if ( $counter_titles % 2 == 1 )
+				{
+					$sub = $title_element->childNodes->item(0)->textContent;
+					continue;
+				}
+				
+				$title_text = trim($title_element->textContent);
+				$title_text = explode(';', $title_text)[0]; // баг именно в bible.by
+				array_push($titles, [
+					'before_verse_number' => intval($sub),
+					'text'                => trim($title_text, " .;")
+				]);
+			}
+			break;
+		}
+	}
+	// print_r($titles);
+	return $titles;
+}
+
+function parse_chapter($doc, $book, $chapter_id) 
 {	
 	$verses = [];
 	$notes = [];
@@ -109,7 +146,12 @@ function get_chapter($doc, $book, $chapter_id)
 		
 		$id++;
 	}
-	return ['id' => $chapter_id, 'verses' => $verses, 'notes' => $notes];
+	return [
+		'id'     => $chapter_id, 
+		'verses' => $verses, 
+		'notes'  => $notes, 
+		'titles' => get_titles($doc)
+	];
 }
 
 function get_all_books($translation) 
@@ -162,7 +204,7 @@ function get_all_books($translation)
 			
 			print " $chapter_id";
 			
-			$chapterArray = get_chapter($doc, $book, $chapter_id);
+			$chapterArray = parse_chapter($doc, $book, $chapter_id);
 			
 			array_push($bookArray['chapters'], $chapterArray);
 			
@@ -180,10 +222,9 @@ function get_all_books($translation)
 	return $bible;
 }
 
-function prepare_environment() {
-	if (!file_exists('text')) {
-		mkdir('text', 0777, true);
-	}
+function prepare_environment() 
+{
+	create_dir777_if_not_exists('text');
 }
 
 function save_to_file($translation, $bible) 

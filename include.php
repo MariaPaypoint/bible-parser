@@ -22,14 +22,51 @@ function get_translation_info($translation)
 	die('Incorrect translation.');
 }
 
-function get_voice_info($translation)
+function get_voice_info($voice)
 {
-	switch ($translation)
+	$link_4bbl = 'https://4bbl.ru/data/%voice$s/%book0$s/%chapter0$s.mp3';
+	// $link_onlybible = 'https://mp3.only.bible/%translation$s/%voice$s/%bookCode$s-%chapter$s.mp3';
+	
+	switch ($voice)
 	{
-		case 'bondarenko' : return ['name'=>'Александр Бондаренко', 'isMusic'=>1, 'description'=>'Текст читает Александр Викторович Бондаренко — украинский актёр театра и кино, народный артист Украины. Жил с нами в период с 1960 по 2013 год. Его голосом не озвучено лишь книги Паралипоменон и Песнь Песней. Эти книги заменены на чтение Игоря Козлова. Особенность этой озвучки — драматическое музыкальное сопровождение.'];
+		case 'bondarenko' : 
+			return [
+				'name'                     => 'Александр Бондаренко', 
+				'isMusic'                  => 1, 
+				'description'              => 'Текст читает Александр Викторович Бондаренко — украинский актёр театра и кино, народный артист Украины. Жил с нами в период с 1960 по 2013 год. Его голосом не озвучено лишь книги Паралипоменон и Песнь Песней. Эти книги заменены на чтение Игоря Козлова. Особенность этой озвучки — драматическое музыкальное сопровождение.',
+				'readBookNames'            => 1,
+				'readBookNamesAllChapters' => 0,
+				'readChapterNumbers'       => 1,
+				'readTitles'               => 0,
+				'link'                     => $link_4bbl
+			];
+		case 'nrt' : 
+			return [
+				'name'                     => 'Новый русский перевод', 
+				'isMusic'                  => 1, 
+				'description'              => '',
+				'readBookNames'            => 0,
+				'readBookNamesAllChapters' => 0,
+				'readChapterNumbers'       => 0,
+				'readTitles'               => 1,
+				'link'                     => $link_4bbl
+			];
+		case 'prudovsky' : 
+			return [
+				'name'                     => 'Илья Прудовский', 
+				'isMusic'                  => 1, 
+				'description'              => 'Текст читает Илья Ефимович Прудовский - легендарный диктор советского радио.',
+				'readBookNames'            => 1,
+				'readBookNamesAllChapters' => 1, // еще и разные названия в главах
+				'readChapterNumbers'       => 1,
+				'readTitles'               => 0,
+				'link'                     => 'https://mp3.only.bible/rst/%voice$s/%bookCode$s-%chapter$s.mp3'
+			];
+		default:
+			die("Incorrect voice [$voice].");
 	}
 	
-	die('Incorrect voice.');
+	
 }
 
 function get_book_prename($voice, $book_index) {
@@ -210,7 +247,7 @@ function determine_text_translation($position=1)
 	global $argv;
 	
 	if ( !isset($argv[$position]) )
-		die("\nERROR: Set translation var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
+		die("\nERROR: Set translation var! \nExample usage: \n$ php timecodes.php syn bondarenko\n\n");
 	
 	$translation = $argv[$position];
 	$filename = "text/$translation.json";
@@ -226,11 +263,11 @@ function determine_voice_4bbl($translation, $position=2)
 	global $argv;
 	
 	if ( !isset($argv[$position]) )
-		die("\nERROR: Set voice var! \nExample usage: \n$ php timecodes.php syn syn-bondarenko\n\n");
+		die("\nERROR: Set voice var! \nExample usage: \n$ php timecodes.php syn bondarenko\n\n");
 	
 	$voice = $argv[$position];
 	
-	$url = get_chapter_audio_url($translation, $voice, '01', '01');
+	$url = get_chapter_audio_url($translation, $voice, 1, 1);
 	
 	if ( !file_get_contents($url) )
 		die("Voice not found (example url: $url)\n\n");
@@ -425,43 +462,54 @@ function get_ps_name($chapter)
 		return ($chapter > 100 ? 'сто ' : '') . get_ps_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_ps_name_1($chapter % 10);
 }
 
-function create_chapter_plain($voice, $translationArrayBookChapter, $book, $chapter, $lang, $filename)
-{
-	$str = '';
-	
-	if ( $chapter == 1 ) {
-		$book_info = get_book_info($book);
-		// вообще для каждого перевода своя система походу, как чтец называет книги
-		// if ( $book_info['ru_audio'] )
-			// $str .= $book_info['ru_audio'] . ".\n";
-		// else
-			// print_r($book_info);
-		$prename = get_book_prename($voice, $book);
-		$str .= ($prename ? $prename : $book_info['fullName'][$lang]) . ".\n";
-	}
-	if ( $book == 19 ) // псалом
-		$str .= 'Псалом ' . get_ps_name($chapter) . ".\n";
-	else
-		$str .= 'Глава ' . get_chapter_name($chapter) . ".\n";
-	
-	foreach ($translationArrayBookChapter as $verse)
-	{
-		$str .= $verse['unformatedText'] . "\n";
-	}
-	
-	file_put_contents($filename, $str);
-	
-	// print("Plain $filename created\n");
+function sprintfn ($format, array $args = array()) {
+    // map of argument names to their corresponding sprintf numeric argument value
+    $arg_nums = array_slice(array_flip(array_keys(array(0 => 0) + $args)), 1);
+
+    // find the next named argument. each search starts at the end of the previous replacement.
+    for ($pos = 0; preg_match('/(?<=%)([a-zA-Z_]\w*)(?=\$)/', $format, $match, PREG_OFFSET_CAPTURE, $pos);) {
+        $arg_pos = $match[0][1];
+        $arg_len = strlen($match[0][0]);
+        $arg_key = $match[1][0];
+
+        // programmer did not supply a value for the named argument found in the format string
+        if (! array_key_exists($arg_key, $arg_nums)) {
+            user_error("sprintfn(): Missing argument '${arg_key}'", E_USER_WARNING);
+            return false;
+        }
+
+        // replace the named argument with the corresponding numeric one
+        $format = substr_replace($format, $replace = $arg_nums[$arg_key], $arg_pos, $arg_len);
+        $pos = $arg_pos + strlen($replace); // skip to end of replacement for next iteration
+    }
+
+    return vsprintf($format, array_values($args));
 }
 
 function get_chapter_audio_url($translation, $voice, $book, $chapter)
 {
-	return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
+	$voice_info = get_voice_info($voice);
+	$book_info = get_book_info($book);
+	
+	$link = sprintfn($voice_info['link'], [
+		'voice'       => $voice,
+		'book'        => $book,
+		'chapter'     => $chapter,
+		'book0'       => str_pad($book, 2, '0', STR_PAD_LEFT),
+		'chapter0'    => str_pad($chapter, 2, '0', STR_PAD_LEFT),
+		'bookCode'    => $book_info['code'],
+		'translation' => $translation
+	]);
+	return $link;
+	//return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
 }
 
 function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
 {
-	$filename = "audio/$translation/$voice/mp3/$book/$chapter.mp3";
+	$book0    = str_pad($book, 2, '0', STR_PAD_LEFT);
+	$chapter0 = str_pad($chapter, 2, '0', STR_PAD_LEFT);
+	
+	$filename = "audio/$translation/$voice/mp3/$book0/$chapter0.mp3";
 	
 	if ( !file_exists($filename) or $mode == 'MODE_REPLACE' )
 	{
@@ -475,6 +523,18 @@ function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
 	}
 	else {
 		// print("Audio $filename already exists\n");
+	}
+}
+
+function create_dir777_if_not_exists($dirname, $clear=False)
+{
+	if ( $clear )
+		rmdir_recursive($mfa_input_dir);
+	
+	if ( !file_exists($dirname) ) 
+	{
+		mkdir($dirname, 0777, true);
+		chmod($dirname, 0777);
 	}
 }
 
@@ -493,11 +553,10 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
 	
 	if ( !$file_exists or $mode == 'MODE_REPLACE' ) 
 	{
-		if ( !file_exists(dirname($filename_destination)) )
-			mkdir(dirname($filename_destination), 0777, true);
+		create_dir777_if_not_exists(dirname($filename_destination));
 		
 		$cmd_ffmpeg = "docker run --name ffmpeg --rm --volume " . __DIR__ . "/audio:/audio linuxserver/ffmpeg -hide_banner -loglevel error -i /$filename_source /$filename_destination";
-		// echo $cmd_ffmpeg . "\n";
+		// die($cmd_ffmpeg . "\n");
 		
 		$exec_result = exec($cmd_ffmpeg, $output, $retval);
 		if ( $exec_result or $retval==0 ) { //

@@ -4,6 +4,13 @@ require 'include.php';
 
 function clear_db_text($mysqli, $translation_code) 
 {
+	// очистка заголовков
+	$mysqli->query("
+		DELETE FROM bible_titles
+		WHERE before_bible_verse IN (SELECT code FROM bible_verses WHERE bible_book IN (SELECT code FROM bible_books WHERE bible_translation = '$translation_code'))
+	");
+	// printf("Затронутые строки (DELETE/bible_notes): %d\n", $mysqli->affected_rows);
+	
 	// очистка примечаний
 	$mysqli->query("
 		DELETE FROM bible_notes
@@ -24,8 +31,6 @@ function clear_db_text($mysqli, $translation_code)
 		WHERE bible_translation = '$translation_code'
 	");
 	// printf("Затронутые строки (DELETE/bible_books): %d\n", $mysqli->affected_rows);
-	
-	// еще?
 }
 
 function save_text_chapter_verses($mysqli, $book_code, $chapter) 
@@ -65,6 +70,27 @@ function select_verse_code($mysqli, $verse_number, $chapter_number, $book_code)
 		die($query);
 }
 
+function save_text_chapter_titles($mysqli, $book_code, $chapter) 
+{
+	$titles_str = '';
+	foreach ( $chapter['titles'] as $title ) {
+		$verse_code = select_verse_code($mysqli, $title['before_verse_number'], $chapter['id'], $book_code);
+		$titles_str .= sprintf(
+			"($verse_code, '%s'),",
+			$mysqli->real_escape_string($title['text'])
+		);
+	}
+	if ( $titles_str ) {
+		$titles_str = substr_replace($titles_str, '', -1);
+		$mysqli->query("
+			INSERT INTO bible_titles
+			  (before_bible_verse, text)
+			VALUES 
+			  $titles_str
+		");
+		// printf("Затронутые строки (INSERT/bible_notes): %d\n", $mysqli->affected_rows);
+	}
+}
 function save_text_chapter_notes($mysqli, $book_code, $chapter) 
 {
 	$notes_str = '';
@@ -102,6 +128,7 @@ function save_text_book($mysqli, $translation_code, $book)
 	foreach ( $book['chapters'] as $chapter ) {
 		save_text_chapter_verses($mysqli, $book_code, $chapter);
 		save_text_chapter_notes($mysqli, $book_code, $chapter);
+		save_text_chapter_titles($mysqli, $book_code, $chapter);
 	}
 	
 	print "Book $book[id] inserted to db with code $book_code\n";

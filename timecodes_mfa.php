@@ -1,6 +1,6 @@
 <?php
 
-$books_limit    = 9999;
+$books_limit    = 6;
 $chapters_limit = 9999;
 
 require 'include.php';
@@ -27,19 +27,21 @@ function format_all($translation, $voice, $mode)
 	
 	foreach($translationArray['books'] as $book)
 	{
-		$bookCode = $book['id'];
+		$book_number = $book['id'];
 		
-		//if ( $bookCode < 40 or $bookCode > 43 ) continue; // Только Евангелия
-		if ( $bookCode > $books_limit ) continue;
+		//if ( $book_number < 40 or $book_number > 43 ) continue; // Только Евангелия
+		if ( $book_number > $books_limit ) continue;
 		
 		$compute_chapters = true;
+		
+		$book_info = get_book_info($book_number);
 		
 		// не нужно, т.к. переформатирование недолгое, а выравнивание старое берем
 		// if ( $mode == 'MODE_CHANGE' ) {
 			// попытка найти
 			// $old_book = ['chapters' => []];
 			// foreach ( $old_bible['books'] as $b ) {
-				// if ( $b['id'] == $bookCode ) {
+				// if ( $b['id'] == $book_number ) {
 					// $old_book = $b;
 					// $compute_chapters = false;
 					// break;
@@ -51,32 +53,33 @@ function format_all($translation, $voice, $mode)
 			$bookArray = [];
 			$bookArray['chapters'] = [];
 		// }
-		$bookArray['id'] = $bookCode;
-		$book_info = get_book_info($bookCode);
-		$bookArray['code'] = $book_info['code'];
+		$bookArray['id']        = $book_number;
+		$bookArray['code']      = $book_info['code'];
 		$bookArray['shortName'] = $book_info['shortName'][$bible['lang']];
-		$bookArray['fullName'] = $book_info['fullName'][$bible['lang']];
+		$bookArray['fullName']  = $book_info['fullName'][$bible['lang']];
 		
-		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
+		$book0 = str_pad($book_number, 2, '0', STR_PAD_LEFT);
 		
 		print("Book $book0 ... ");
 	
-		foreach($book['chapters'] as $chapter) {
-			$chapterCode = $chapter['id'];
+		foreach ( $book['chapters'] as $chapter ) {
+			$chapter_number = $chapter['id'];
 			
-			if ( $chapterCode > $chapters_limit ) continue;
+			if ( $chapter_number > $chapters_limit ) continue;
 			
-			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
+			$chapter0 = str_pad($chapter_number, 2, '0', STR_PAD_LEFT);
 			
-			array_push($bookArray['chapters'], ['id'=>$chapterCode, 'verses'=>get_formatted_chapter_timecodes_mfa($book0, $chapter0, $translation, $voice)]);
+			array_push($bookArray['chapters'], [
+				'id'     => $chapter_number, 
+				'verses' => get_formatted_chapter_timecodes_mfa($book0, $chapter0, $translation, $voice)
+			]);
 		}
 		
 		array_push($bible['books'], $bookArray);
 		
 		// $filenameB = "audio/$translation/$voice/mp3/$book0/timecodes.json";
 		
-		// if ( !file_exists(dirname($filenameB)) )
-			// mkdir(dirname($filenameB), 0777, true);
+		// create_dir777_if_not_exists($filenameB);
 
 		// file_put_contents($filenameB, json_encode($bookArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 			
@@ -175,10 +178,7 @@ function mfa_align_all($translation, $voice, $mode)
 	// очистим/пересоздадим папку вывода
 	if ( $mode == 'MODE_REPLACE' ) 
 	{
-		rmdir_recursive($mfa_output_dir);
-		mkdir($mfa_output_dir, 0777, true);
-		chmod($mfa_output_dir, 0777);
-		
+		create_dir777_if_not_exists($mfa_output_dir, True);
 		print "All output files cleaned\n";
 	}
 	
@@ -208,11 +208,7 @@ function mfa_align_all($translation, $voice, $mode)
 				print "$mfa_output_dir/$book0 already is full, skipped\n";
 				continue;
 			}
-			if ( !is_dir("$mfa_output_dir/$book0") )
-			{
-				mkdir("$mfa_output_dir/$book0", 0777, true);
-				chmod("$mfa_output_dir/$book0", 0777);
-			}
+			create_dir777_if_not_exists("$mfa_output_dir/$book0");
 			exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 russian_mfa russian_mfa /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
 		}
 	}
@@ -241,6 +237,48 @@ function is_output_full($in_dir, $out_dir)
 	return True;
 }
 
+function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chapter_number, $lang, $filename)
+{
+	$str = '';
+	
+	if ( $voice_info['readBookNames'] and $chapter_number == 1 ) 
+	{
+		$book_info = get_book_info($book_number);
+		// вообще для каждого перевода своя система походу, как чтец называет книги
+		// if ( $book_info['ru_audio'] )
+			// $str .= $book_info['ru_audio'] . ".\n";
+		// else
+			// print_r($book_info);
+		$prename = get_book_prename($voice, $book_number);
+		$str .= ($prename ? $prename : $book_info['fullName'][$lang]) . ".\n";
+	}
+	if ( $voice_info['readChapterNumbers'] )
+	{
+		if ( $book_number == 19 )
+			$str .= 'Псалом ' . get_ps_name($chapter_number) . ".\n";
+		else
+			$str .= 'Глава ' . get_chapter_name($chapter_number) . ".\n";
+	}
+	
+	foreach ( $chapter['verses'] as $verse )
+	{
+		// добавление заголовка
+		if ( $voice_info['readTitles'] )
+			foreach ( $chapter['titles'] as $title )
+				if ( $title['before_verse_number'] == $verse['id'] )
+				{
+					$str .= $title['text'] . ".\n";
+					break;
+				}
+		
+		$str .= $verse['unformatedText'] . "\n";
+	}
+	
+	file_put_contents($filename, $str);
+	
+	// print("Plain $filename created\n");
+}
+
 function prepare_files($translation, $voice, $mode)
 {
 	global $books_limit, $chapters_limit;
@@ -250,6 +288,7 @@ function prepare_files($translation, $voice, $mode)
 	$translationArray = get_translation_array($translation);
 	
 	$translation_info = get_translation_info($translation);
+	$voice_info = get_voice_info($voice);
 	$lang = $translation_info['lang'];
 	
 	foreach($translationArray['books'] as $book)
@@ -270,11 +309,11 @@ function prepare_files($translation, $voice, $mode)
 			if ( $chapterCode > $chapters_limit ) continue;
 			
 			// скачивание mp3
-			download_chapter_audio($translation, $voice, $book0, $chapter0, $mode);
+			download_chapter_audio($translation, $voice, $bookCode, $chapterCode, $mode);
 			// конверт в wav 
 			convert_mp3_to_vaw($translation, $voice, $book0, $chapter0, $mode);
 			// подготовка текста
-			create_chapter_plain($voice, $chapter['verses'], $bookCode, $chapterCode, $lang, "audio/$translation/$voice/mfa_input/${book0}/${chapter0}.txt");
+			create_chapter_plain($voice, $voice_info, $chapter, $bookCode, $chapterCode, $lang, "audio/$translation/$voice/mfa_input/${book0}/${chapter0}.txt");
 			
 			print("$chapterCode ");
 		}
@@ -287,17 +326,8 @@ function prepare_files($translation, $voice, $mode)
 
 function prepare_environment($translation, $voice) 
 {
-	if ( !file_exists("audio/$translation/$voice/mfa_input") ) 
-	{
-		mkdir("audio/$translation/$voice/mfa_input", 0777, true);
-		chmod("audio/$translation/$voice/mfa_input", 0777);
-	}
-	
-	if ( !file_exists('audio/mfa_output') ) 
-	{
-		mkdir("audio/$translation/$voice/mfa_output", 0777, true);
-		chmod("audio/$translation/$voice/mfa_output", 0777);
-	}
+	create_dir777_if_not_exists("audio/$translation/$voice/mfa_input");
+	create_dir777_if_not_exists("audio/$translation/$voice/mfa_output");
 }
 
 function check_all($translation, $voice, $try) 
@@ -312,12 +342,8 @@ function check_all($translation, $voice, $try)
 	// очистим и пересоздадим временные директории
 	$mfa_input_dir  = "audio/_fix/mfa_input";
 	$mfa_output_dir = "audio/_fix/mfa_output";
-	rmdir_recursive($mfa_input_dir);
-	rmdir_recursive($mfa_output_dir);
-	mkdir($mfa_input_dir, 0777, true);
-	chmod($mfa_input_dir, 0777);
-	mkdir($mfa_output_dir, 0777, true);
-	chmod($mfa_output_dir, 0777);
+	create_dir777_if_not_exists($mfa_input_dir, True);
+	create_dir777_if_not_exists($mfa_output_dir, True);
 	
 	// косяки выравнивания выявляем и копируем файлы
 	foreach ( $translationArray['books'] as $book )
@@ -344,8 +370,9 @@ function check_all($translation, $voice, $try)
 	if ( $errors_count > 0 )
 	{
 		print "\n";
-		$retry_beam = $try*100;
-		exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam 40 --retry_beam $retry_beam'");
+		$beam = $try*1000;
+		$retry_beam = $try*1000+500;
+		exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam $beam --retry_beam $retry_beam'");
 		foreach ( scandir($mfa_output_dir) as $f ) 
 			if ( $f != '.' and $f != '..' )
 			{
@@ -364,22 +391,20 @@ function check_all($translation, $voice, $try)
 
 function do_all($translation, $voice, $mode)
 {
-	// prepare_environment($translation, $voice);
+	prepare_environment($translation, $voice);
 	
 	// скачивание
-	// prepare_files($translation, $voice, $mode);
+	prepare_files($translation, $voice, $mode);
 	
 	// выравнивание
-	// mfa_align_all($translation, $voice, $mode);
+	mfa_align_all($translation, $voice, $mode);
 	
 	// проверка результатов
-	for ( $try=1; $try<=10; $try++ ) 
-	{
+	for ( $try=1; $try<=5; $try++ )
 		if ( check_all($translation, $voice, $try) ) break;
-	}
 	
 	// преобразование результатов 
-	// format_all($translation, $voice, $mode);
+	format_all($translation, $voice, $mode);
 }
 
 $translation = determine_text_translation();
