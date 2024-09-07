@@ -62,8 +62,19 @@ function get_voice_info($voice)
 				'readTitles'               => 0,
 				'link'                     => 'https://mp3.only.bible/rst/%voice$s/%bookCode$s-%chapter$s.mp3'
 			];
+		case 'bti-prozorovsky' : 
+			return [
+				'name'                     => 'Никита Семёнов-Прозоровский', 
+				'isMusic'                  => 1, 
+				'description'              => 'Текст читает Никита Юрьевич Семёнов-Прозоровский - советский и российский актёр театра, кино и дубляжа, диктор, бард, певец. В разное время являлся «голосом» телеканалов «НТВ», киноканалов «НТВ-Плюс», «Discovery», «Восьмого канала».',
+				'readBookNames'            => 1,
+				'readBookNamesAllChapters' => 1, // еще и разные названия в главах
+				'readChapterNumbers'       => 1,
+				'readTitles'               => 0,
+				'link'                     => $link_4bbl
+			];
 		default:
-			die("Incorrect voice [$voice].");
+			die("Incorrect voice [$voice].\n");
 	}
 	
 	

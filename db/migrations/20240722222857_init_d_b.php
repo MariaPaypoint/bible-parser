@@ -34,6 +34,7 @@ final class InitDB extends AbstractMigration
 		  `name` varchar(255) NOT NULL,
 		  PRIMARY KEY (`code`),
 		  KEY `translation_idx` (`translation`),
+		  KEY `book_number_idx` (`book_number`),
 		  CONSTRAINT `translation_books_translation` FOREIGN KEY (`translation`) REFERENCES `translations` (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=263 DEFAULT CHARSET=utf8mb3;
 		");
@@ -46,6 +47,7 @@ final class InitDB extends AbstractMigration
 		  `start_paragraph` tinyint(1) NOT NULL,
 		  PRIMARY KEY (`code`),
 		  KEY `translation_book_idx` (`translation_book`),
+		  KEY `chapter_number_idx` (`chapter_number`),
 		  CONSTRAINT `translation_verses_translation_book` FOREIGN KEY (`translation_book`) REFERENCES `translation_books` (`code`)
 		) ENGINE=InnoDB AUTO_INCREMENT=109329 DEFAULT CHARSET=utf8mb3;
 		");
@@ -103,9 +105,18 @@ final class InitDB extends AbstractMigration
  		  `name` VARCHAR(1000) NOT NULL,
  		  `description` VARCHAR(1000) NULL,
  		  PRIMARY KEY (`inc`)
-    		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+    	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 		");
 
-       
+		$this->execute("CREATE TABLE `bible_stat` (
+			`inc` int NOT NULL AUTO_INCREMENT,
+			`book_number` smallint NOT NULL,
+			`chapter_number` smallint NOT NULL,
+			`verses_count` smallint NOT NULL,
+			`tolerance_count` smallint NOT NULL,
+			PRIMARY KEY (`inc`)
+		  ) ENGINE=InnoDB AUTO_INCREMENT=1180 DEFAULT CHARSET=utf8mb3;		  
+		");
+	   
     }
 }

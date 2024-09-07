@@ -108,6 +108,11 @@ function parse_chapter($doc, $book, $chapter_id)
 			{
 				continue;
 			}
+			elseif ( $nodeName == 'p' )     # Например, bti 1/1/27 - тоже не понятно пока
+			{
+				$htmlText .= $textContent;
+				$unformatedText .= $textContent;
+			}
 			elseif ( $nodeName == 'e' )     # скорее всего слово, к которому примечание (см. стих 20 тут https://bible.by/nrt/13/15/)
 			{
 				continue;
@@ -116,13 +121,15 @@ function parse_chapter($doc, $book, $chapter_id)
 			{
 				if ( preg_match('/^\[(\d+)\]$/', $textContent, $matches, PREG_OFFSET_CAPTURE) ) 
 				{
-					$note_number = $matches[1][0];
-					array_push($notes, [
-						'id'           => intval($note_number), 
-						'text'         => trim(get_note_text($doc, $note_number)),
-						'verse_number' => intval($sub),
-						'position'     => mb_strlen(trim($unformatedText))
-					]);
+					if ( $element->getAttribute('class') == 'sub' ) {
+						$note_number = $matches[1][0];
+						array_push($notes, [
+							'id'           => intval($note_number), 
+							'text'         => trim(get_note_text($doc, $note_number)),
+							'verse_number' => intval($sub),
+							'position'     => mb_strlen(trim($unformatedText))
+						]);
+					}
 				}
 			}
 			else                             # что-то новенькое

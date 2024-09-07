@@ -1,6 +1,6 @@
 <?php
 
-$books_limit    = 6;
+$books_limit    = 2;
 $chapters_limit = 9999;
 
 require 'include.php';
