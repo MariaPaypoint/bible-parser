@@ -172,9 +172,9 @@ function insert_or_update_translation($mysqli, $translation, $translationArray)
 		");
 		$translation_code = $mysqli->insert_id;
 		// printf("Затронутые строки (INSERT/translations): %d\n", $mysqli->affected_rows);
+
+		print "Translation $translation inserted to db with code $translation_code\n";
 	}
-	
-	print "Translation $translation is in db with code $translation_code\n";
 	
 	return $translation_code;
 }

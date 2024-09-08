@@ -1,7 +1,7 @@
 <?php
 
-$books_limit    = 2;
-$chapters_limit = 9999;
+$books_limit    = 999;
+$chapters_limit = 999;
 
 require 'include.php';
 
@@ -241,7 +241,7 @@ function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chap
 {
 	$str = '';
 	
-	if ( $voice_info['readBookNames'] and $chapter_number == 1 ) 
+	if ( $voice_info['readBookNames'] and ($chapter_number == 1 or $voice_info['readBookNamesAllChapters'] == 1) ) 
 	{
 		$book_info = get_book_info($book_number);
 		// вообще для каждого перевода своя система походу, как чтец называет книги
