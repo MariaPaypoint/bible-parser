@@ -30,13 +30,31 @@ function determine_translation()
 
 function get_note_text($doc, $note_number) 
 {
-	$link = $doc->getElementById("n$note_number");
-	$fullText = $link->parentNode->textContent; # 26 [1] — В знач.: «человеческий род»; евр. ада́м.
-	
-	if ( preg_match('/^\d+ \[\d+\] — (.+)$/', $fullText, $matches, PREG_OFFSET_CAPTURE) )
-		return $matches[1][0];
-	else 
-		return "Error in note searching";
+	$element = $doc->getElementById("n$note_number");
+	if ( $element ) {
+		$fullText = $element->parentNode->textContent; 
+		
+		# 26 [1] — В знач.: «человеческий род»; евр. ада́м.
+		if ( preg_match('/^\d+ \[\d+\] — (.+)$/', $fullText, $matches, PREG_OFFSET_CAPTURE) )
+			return $matches[1][0];
+		else 
+			die("Error in note searching");
+	}
+	else {
+		$element = $doc->getElementById("note_main")->childNodes->item(7);
+		$nodeName = $element->nodeName;
+		
+		for ( $counter = 0; $counter < $element->childNodes->length; $counter ++ ) {
+			$fullText = $element->childNodes->item($counter)->textContent; 
+			
+			# 1  [20] — Букв.: (римскую) милю — мера длины, около 1,5 км.
+			if ( preg_match('/^\d+  \['.$note_number.'\] — (.+)$/', $fullText, $matches, PREG_OFFSET_CAPTURE) ) {
+				//print $fullText . "\n";
+				return $matches[1][0];
+			}
+		}
+		die();
+	}
 }
 
 function get_titles($doc)
@@ -76,6 +94,104 @@ function get_titles($doc)
 	return $titles;
 }
 
+function get_text_from_children($element, $chapter_id, $doc, $sub=0) 
+{
+	$start_paragraph = $element->getAttribute('class') == 'paragraph' ? 1 : 0;
+	$htmlText = '';
+	$unformatedText = '';
+	$notes = [];
+
+	for ( $counter = 0; $counter < $element->childNodes->length; $counter ++ )
+	{
+		$item = $element->childNodes->item($counter);
+		$textContent = $item->textContent;
+		$nodeName = $item->nodeName;
+
+		if ( $nodeName == '#text' )      # обычный текст
+		{
+			$htmlText .= $textContent;
+			$unformatedText .= $textContent;
+			continue;
+		}
+
+		$className = $item->getAttribute('class');
+		//print "[SET_$className]";
+
+		// разбираем форматирование
+		
+		if ( $nodeName == 'em' )     # курсив
+		{
+			$htmlText .= "<em>$textContent</em>";
+			$unformatedText .= $textContent;
+		}
+		elseif ( $nodeName == 'br' )     # разрыв строки - пока не знаю что с ним делать
+		{
+			$htmlText .= "<br>";
+		}
+		
+		elseif ( $nodeName == 'e' )     # скорее всего слово, к которому примечание (см. стих 20 тут https://bible.by/nrt/13/15/)
+		{
+			continue;
+		}
+		elseif ( $nodeName == 'sup' )     # скорее всего слово, к которому примечание (см. стих 20 тут https://bible.by/nrt/13/15/)
+		{
+			$sub = $textContent;
+		}
+		elseif ( $nodeName == 'span' and $className == 'sub' )   # сноска?
+		{
+			//print $textContent;
+			preg_match('/^\[(\d+)\]$/', $textContent, $matches, PREG_OFFSET_CAPTURE);
+			$note_number = $matches[1][0];
+			$n = [
+				'id'           => intval($note_number), 
+				'text'         => trim(get_note_text($doc, $note_number)),
+				'verse_number' => intval($sub),
+				'position'     => mb_strlen(trim($unformatedText))
+			];
+			//print_r($n);
+			array_push($notes, $n);
+		}
+		elseif ( $nodeName == 'p' or $nodeName == 'span' )     # Например, bti 1/1/27 - тоже не понятно пока
+		{
+			//print "GOTO";
+			list($v, $n) = get_text_from_children($item, $chapter_id, $doc, $sub);
+			$notes = array_merge($notes, $n);
+			
+			if ( $className and $className != 'paragraph' )
+				$htmlText .= "<span class='$className'>" . $v['htmlText'] . "</span>";
+			else
+				$htmlText .= $v['htmlText'];
+			
+			//$unformatedText .= $textContent;
+			$unformatedText .= $v['unformatedText'];
+			//if ( $chapter_id == 5 ) {
+			//	print_r($v);
+			//	die();
+			//}
+		}
+		else                             # что-то новенькое
+		{
+			print "NOT FOUND LOGIC!\n";
+			print "chapter: [$chapter_id], verse_number: [$sub], nodeName: [$nodeName], text: [$textContent]\n";
+			print_r($item);
+			die();
+		}
+		
+		// if ( (string)intval($textContent) !== $textContent )
+			// $text .= $textContent;
+	}
+
+	return [
+		[
+			'id'              => intval($sub), 
+			'htmlText'        => trim($htmlText), 
+			'unformatedText'  => trim($unformatedText),
+			'start_paragraph' => $start_paragraph
+		],
+		$notes
+	];
+}
+
 function parse_chapter($doc, $book, $chapter_id) 
 {	
 	$verses = [];
@@ -84,72 +200,9 @@ function parse_chapter($doc, $book, $chapter_id)
 	$id = 1;
 	while ( $element = $doc->getElementById($id) ) 
 	{
-		$sub = $element->childNodes->item(0)->textContent;
-		$start_paragraph = $element->getAttribute('class') == 'paragraph' ? 1 : 0;
-		$htmlText = '';
-		$unformatedText = '';
-		for ( $counter = 1; $counter < $element->childNodes->length; $counter ++ )
-		{
-			$textContent = $element->childNodes->item($counter)->textContent;
-			$nodeName = $element->childNodes->item($counter)->nodeName;
-			
-			// разбираем форматирование
-			if ( $nodeName == '#text' )      # обычный текст
-			{
-				$htmlText .= $textContent;
-				$unformatedText .= $textContent;
-			}
-			elseif ( $nodeName == 'em' )     # курсив
-			{
-				$htmlText .= "<em>$textContent</em>";
-				$unformatedText .= $textContent;
-			}
-			elseif ( $nodeName == 'br' )     # разрыв строки - пока не знаю что с ним делать
-			{
-				continue;
-			}
-			elseif ( $nodeName == 'p' )     # Например, bti 1/1/27 - тоже не понятно пока
-			{
-				$htmlText .= $textContent;
-				$unformatedText .= $textContent;
-			}
-			elseif ( $nodeName == 'e' )     # скорее всего слово, к которому примечание (см. стих 20 тут https://bible.by/nrt/13/15/)
-			{
-				continue;
-			}
-			elseif ( $nodeName == 'span' )   # сноска?
-			{
-				if ( preg_match('/^\[(\d+)\]$/', $textContent, $matches, PREG_OFFSET_CAPTURE) ) 
-				{
-					if ( $element->getAttribute('class') == 'sub' ) {
-						$note_number = $matches[1][0];
-						array_push($notes, [
-							'id'           => intval($note_number), 
-							'text'         => trim(get_note_text($doc, $note_number)),
-							'verse_number' => intval($sub),
-							'position'     => mb_strlen(trim($unformatedText))
-						]);
-					}
-				}
-			}
-			else                             # что-то новенькое
-			{
-				print "NOT FOUND LOGIC!\n";
-				print "chapter: [$chapter_id], verse_number: [$sub], nodeName: [$nodeName], text: [$textContent]\n";
-				print_r($element->childNodes->item($counter));
-				// print_r($notes);
-				die();
-			}
-			
-			// if ( (string)intval($textContent) !== $textContent )
-				// $text .= $textContent;
-		}
-		array_push($verses, [
-			'id'              => intval($sub), 
-			'htmlText'        => trim($htmlText), 
-			'unformatedText'  => trim($unformatedText),
-			'start_paragraph' => $start_paragraph
-		]);
+		list($v, $n) = get_text_from_children($element, $chapter_id, $doc);
+		array_push($verses, $v);
+		$notes = array_merge($notes, $n);
 		
 		$id++;
 	}
@@ -180,7 +233,7 @@ function get_all_books($translation)
 		$book++;
 		
 		if ( $book > $books_limit ) break; // отладка
-		// if ( $book < 40 ) continue; // Только НЗ
+		//if ( $book < 40 ) continue; // Только НЗ
 		// if ( $book > 43 ) break; // Только Евангелия
 		
 		$doc->loadHTMLFile("https://bible.by/$translation/$book/1/");

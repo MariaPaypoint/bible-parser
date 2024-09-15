@@ -153,7 +153,7 @@ function insert_or_update_translation($mysqli, $translation, $translationArray)
 	if ( $obj = $result->fetch_object() )
 	{
 		$translation_code = $obj->code;
-		printf("Translation already exists, code: %d\n", $translation_code);
+		print "Translation $translation already exists, code: $translation_code\n";
 		
 		// добавление
 		$mysqli->query("
@@ -222,7 +222,7 @@ function insert_or_update_voice($mysqli, $translation_code, $voice, $voiceInfo)
 	if ( $obj = $result->fetch_object() )
 	{
 		$voice_code = $obj->code;
-		printf("Voice already exists, code: %d\n", $translation_code);
+		print "Voice $voice already exists, code: $voice_code\n";
 		
 		// добавление
 		$mysqli->query("
@@ -241,9 +241,9 @@ function insert_or_update_voice($mysqli, $translation_code, $voice, $voiceInfo)
 		");
 		$voice_code = $mysqli->insert_id;
 		// printf("Затронутые строки (INSERT/voices): %d\n", $mysqli->affected_rows);
+
+		print "Voice $voice inserted to db with code $voice_code\n";
 	}
-	
-	print "Voice $voice is in db with code $voice_code\n";
 	
 	return $voice_code;
 }
