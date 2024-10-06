@@ -36,17 +36,23 @@ function clear_db_text($mysqli, $translation_code)
 function save_text_chapter_verses($mysqli, $book_code, $chapter) 
 {
 	$verses_str = '';
+	$prev_join = 0;
 	foreach ( $chapter['verses'] as $verse ) 
 	{
+		if ( $prev_join > 0 ) {
+			$prev_join -= 1;
+			continue;
+		}
 		$verses_str .= sprintf(
-			"($verse[id], $chapter[id], $book_code, '%s', $verse[start_paragraph]),",
+			"($verse[id], $verse[join], $chapter[id], $book_code, '%s', $verse[start_paragraph]),",
 			$mysqli->real_escape_string($verse['htmlText'])
 		);
+		$prev_join = $verse['join'];
 	}
 	$verses_str = substr_replace($verses_str, '', -1);
 	$mysqli->query("
 		INSERT INTO translation_verses
-		  (verse_number, chapter_number, translation_book, text, start_paragraph)
+		  (verse_number, verse_number_join, chapter_number, translation_book, text, start_paragraph)
 		VALUES 
 		  $verses_str
 	");

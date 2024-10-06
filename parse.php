@@ -100,6 +100,7 @@ function get_text_from_children($element, $chapter_id, $doc, $sub=0)
 	$htmlText = '';
 	$unformatedText = '';
 	$notes = [];
+	$join = 0;
 
 	for ( $counter = 0; $counter < $element->childNodes->length; $counter ++ )
 	{
@@ -156,12 +157,31 @@ function get_text_from_children($element, $chapter_id, $doc, $sub=0)
 			//print "GOTO";
 			list($v, $n) = get_text_from_children($item, $chapter_id, $doc, $sub);
 			$notes = array_merge($notes, $n);
+			if ( $join < $v['join'] )
+				$join = $v['join'];
 			
-			if ( $className and $className != 'paragraph' )
-				$htmlText .= "<span class='$className'>" . $v['htmlText'] . "</span>";
-			else
+			if ( !$className or $className == 'paragraph' )
 				$htmlText .= $v['htmlText'];
-			
+			elseif ( $className == 'jesus' or $className == 'quote' or $className == 'e' or $className == 'gray' )
+				$htmlText .= "<span class='$className'>" . $v['htmlText'] . "</span>";
+			elseif ( $className == 'note' ) { # объединение стихов [20-21]
+				if ( preg_match('/^\[\d+-\d+\]$/', $v['htmlText']) ) {
+					list($first, $second) = explode('-', trim($v['htmlText'], '[]'));
+					$join = (int)$second - (int)$first;
+					// print " join:$v[htmlText]:[$join]";
+					continue;
+				}
+				elseif ( preg_match('/^\[\d+\]$/', $v['htmlText']) ) {
+					$value = trim($v['htmlText'], '[]');
+					print " NEED_MANUAL_FIX[$value]";
+					continue;
+				}
+				else
+					die("Некорректный формат строки. Ожидаемый формат: [число-число], а оно: $v[htmlText]\n");
+			}
+			else 
+				die("Unknown span className: $className, value: $v[htmlText]\n");
+
 			//$unformatedText .= $textContent;
 			$unformatedText .= $v['unformatedText'];
 			//if ( $chapter_id == 5 ) {
@@ -186,7 +206,8 @@ function get_text_from_children($element, $chapter_id, $doc, $sub=0)
 			'id'              => intval($sub), 
 			'htmlText'        => trim($htmlText), 
 			'unformatedText'  => trim($unformatedText),
-			'start_paragraph' => $start_paragraph
+			'start_paragraph' => $start_paragraph,
+			'join'            => $join
 		],
 		$notes
 	];
@@ -265,6 +286,8 @@ function get_all_books($translation)
 			print " $chapter_id";
 			
 			$chapterArray = parse_chapter($doc, $book, $chapter_id);
+
+			$chapterArray = manual_fix($translation, $book, $chapter_id, $chapterArray);
 			
 			array_push($bookArray['chapters'], $chapterArray);
 			
@@ -278,8 +301,42 @@ function get_all_books($translation)
 		
 		print " OK\n";
 	}
-	
+
 	return $bible;
+}
+
+function manual_fix($translation, $book, $chapter_id, $chapterArray)
+{
+	if ( $translation == 'bti' )
+	{
+		if ( $book == 2 and $chapter_id == 16 ) # исход 16
+		{
+			$newVerses = [];
+			foreach ( $chapterArray['verses'] as $v )
+			{
+				if ( $v['id'] == 34 )
+				{
+					$v['htmlText'] = '(Омер — это десятая часть эфы.) Аарон сделал всё, как ГОСПОДЬ повелел Моисею: он поставил сосуд перед ковчегом со скрижалями Закона. Там он и хранился. И ели сыны Израилевы манну все сорок лет, пока не пришли в землю, где смогли поселиться. Питались они этой манной до тех пор, пока не достигли Ханаана.';
+					$v['unformatedText'] = $v['htmlText'];
+					$v['join'] = 2;
+				}
+				array_push($newVerses, $v);
+			}
+			$chapterArray['verses'] = $newVerses;
+
+			$newNotes = [];
+			foreach ( $chapterArray['notes'] as $n )
+			{
+				if ( $n['verse_number'] == 36 )
+				{
+					$n['verse_number'] = 34;
+				}
+				array_push($newNotes, $n);
+			}
+			$chapterArray['notes'] = $newNotes;
+		}
+	}
+	return $chapterArray;
 }
 
 function prepare_environment() 
