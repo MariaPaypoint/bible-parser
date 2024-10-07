@@ -95,7 +95,7 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 {
 	global $entries;
 	
-	$filename_json = "audio/$translation/$voice/mfa_output/${book}/${chapter}.json";
+	$filename_json = "audio/$translation/$voice/mfa_output/$book/$chapter.json";
 	if ( !file_exists($filename_json) ) {
 		print("$filename_json does not exists!\n\n");
 		return;
@@ -103,7 +103,7 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 	$mfa_json = json_decode(file_get_contents($filename_json), true);
 	$entries = $mfa_json['tiers']['words']['entries'];
 	
-	$filename_text = "audio/$translation/$voice/mfa_input/${book}/${chapter}.txt";
+	$filename_text = "audio/$translation/$voice/mfa_input/$book/$chapter.txt";
 	if ( !file_exists($filename_text) ) 
 		die("$filename_text does not exists!!!\n\n");
 	$lines = file($filename_text);
@@ -262,6 +262,9 @@ function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chap
 	
 	foreach ( $chapter['verses'] as $verse )
 	{
+		// не добавлять пустые
+		if ( !$verse['unformatedText'] )
+			continue;
 		// добавление заголовка
 		if ( $voice_info['readTitles'] )
 			foreach ( $chapter['titles'] as $title )
@@ -313,7 +316,7 @@ function prepare_files($translation, $voice, $mode)
 			// конверт в wav 
 			convert_mp3_to_vaw($translation, $voice, $book0, $chapter0, $mode);
 			// подготовка текста
-			create_chapter_plain($voice, $voice_info, $chapter, $bookCode, $chapterCode, $lang, "audio/$translation/$voice/mfa_input/${book0}/${chapter0}.txt");
+			create_chapter_plain($voice, $voice_info, $chapter, $bookCode, $chapterCode, $lang, "audio/$translation/$voice/mfa_input/$book0/$chapter0.txt");
 			
 			print("$chapterCode ");
 		}

@@ -525,7 +525,7 @@ function sprintfn ($format, array $args = array()) {
 
         // programmer did not supply a value for the named argument found in the format string
         if (! array_key_exists($arg_key, $arg_nums)) {
-            user_error("sprintfn(): Missing argument '${arg_key}'", E_USER_WARNING);
+            user_error("sprintfn(): Missing argument '$arg_key'", E_USER_WARNING);
             return false;
         }
 
@@ -580,7 +580,7 @@ function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
 function create_dir777_if_not_exists($dirname, $clear=False)
 {
 	if ( $clear )
-		rmdir_recursive($mfa_input_dir);
+		rmdir_recursive($dirname);
 	
 	if ( !file_exists($dirname) ) 
 	{
@@ -592,7 +592,7 @@ function create_dir777_if_not_exists($dirname, $clear=False)
 function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
 {
 	$filename_source = "audio/$translation/$voice/mp3/$book/$chapter.mp3";
-	$filename_destination = "audio/$translation/$voice/mfa_input/${book}/${chapter}.wav";
+	$filename_destination = "audio/$translation/$voice/mfa_input/$book/$chapter.wav";
 	
 	$file_exists = file_exists($filename_destination);
 	

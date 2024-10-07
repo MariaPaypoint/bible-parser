@@ -320,6 +320,11 @@ function manual_fix($translation, $book, $chapter_id, $chapterArray)
 					$v['unformatedText'] = $v['htmlText'];
 					$v['join'] = 2;
 				}
+				elseif ( $v['id'] == 35 or $v['id'] == 36 )
+				{
+					// $v['htmlText'] = "<span class='empty'></span>";
+					$v['htmlText'] = $v['unformatedText'] = '';
+				}
 				array_push($newVerses, $v);
 			}
 			$chapterArray['verses'] = $newVerses;
@@ -334,6 +339,19 @@ function manual_fix($translation, $book, $chapter_id, $chapterArray)
 				array_push($newNotes, $n);
 			}
 			$chapterArray['notes'] = $newNotes;
+		}
+		if ( $book == 52 and $chapter_id == 3 ) # Рим 3
+		{
+			$newVerses = [];
+			foreach ( $chapterArray['verses'] as $v )
+			{
+				if ( $v['id'] == 25 )
+				{
+					$v['join'] = 0;
+				}
+				array_push($newVerses, $v);
+			}
+			$chapterArray['verses'] = $newVerses;
 		}
 	}
 	return $chapterArray;

@@ -41,13 +41,14 @@ function save_text_chapter_verses($mysqli, $book_code, $chapter)
 	{
 		if ( $prev_join > 0 ) {
 			$prev_join -= 1;
+			//$verse['htmlText'] = '<span class="empty"></span>';
 			continue;
 		}
 		$verses_str .= sprintf(
 			"($verse[id], $verse[join], $chapter[id], $book_code, '%s', $verse[start_paragraph]),",
 			$mysqli->real_escape_string($verse['htmlText'])
 		);
-		$prev_join = $verse['join'];
+		$prev_join = max($prev_join, $verse['join']);
 	}
 	$verses_str = substr_replace($verses_str, '', -1);
 	$mysqli->query("
@@ -305,11 +306,22 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 			// косяки выравнивания выявляем
 			if ( !$chapter['verses'] )
 				print "Error: book $book[id] / chapter $chapter[id] is empty!\n";
-			else
+			else {
+				$shift = 0;
 				foreach ( $chapter['verses'] as $verse ) {
-					$translation_verse = $verses_codes[$book_code][$chapter['id']][$verse['id']];
+					$verses_codes_chapter = $verses_codes[$book_code][$chapter['id']];
+					while ( !array_key_exists($verse['id'] + $shift, $verses_codes_chapter) )
+					{
+						// похоже объединенный стих, нужно сдвинуть
+						$shift += 1;
+						if ( $shift > 10 ) {
+							die("Error: verse $verse[id] is not found in book $book[id] / chapter $chapter[id]!\n");
+						}
+					}
+					$translation_verse = $verses_codes_chapter[$verse['id'] + $shift];
 					$str .= "($voice_code, $translation_verse, $verse[begin], $verse[end], NULL),";
 				}
+			}
 		}
 	}
 	$str = substr_replace($str, '', -1);
