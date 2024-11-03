@@ -1,7 +1,7 @@
 <?php
 
 $books_limit    = 999;
-$chapters_limit = 999;
+$chapters_limit = 2;
 
 require 'include.php';
 
@@ -254,8 +254,8 @@ function get_all_books($translation)
 		$book++;
 		
 		if ( $book > $books_limit ) break; // отладка
-		//if ( $book < 40 ) continue; // Только НЗ
-		// if ( $book > 43 ) break; // Только Евангелия
+		if ( $book < 40 ) continue; // Только НЗ
+		if ( $book > 40 ) break; // Только Евангелия
 		
 		$doc->loadHTMLFile("https://bible.by/$translation/$book/1/");
 		
@@ -286,6 +286,9 @@ function get_all_books($translation)
 			print " $chapter_id";
 			
 			$chapterArray = parse_chapter($doc, $book, $chapter_id);
+
+			if ( $chapter_id == 2 ) 
+				print_r($chapterArray);
 
 			$chapterArray = manual_fix($translation, $book, $chapter_id, $chapterArray);
 			

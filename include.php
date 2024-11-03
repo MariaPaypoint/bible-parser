@@ -288,7 +288,7 @@ function get_book_info($book_index)
 		case 66: return ['code'=>'rev', 'shortName'=>['en'=>'Rev'   , 'ru'=>'Откр' ] , 'fullName'=>['en'=>'Revelation'      , 'ru'=>'Откровение']];
 	}
 	
-	return 'unknown';
+	return false;
 }
 
 // получение входящих параметров
