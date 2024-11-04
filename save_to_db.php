@@ -315,7 +315,7 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 						// похоже объединенный стих, нужно сдвинуть
 						$shift += 1;
 						if ( $shift > 10 ) {
-							die("Error: verse $verse[id] is not found in book $book[id] / chapter $chapter[id]!\n");
+							die("Error: verse $verse[id] (".print_r($verse,1).") is not found in book $book[id] ($book[fullName]) / chapter $chapter[id]! verses_codes_chapter:(".print_r($verses_codes_chapter,1).")\n");
 						}
 					}
 					$translation_verse = $verses_codes_chapter[$verse['id'] + $shift];
