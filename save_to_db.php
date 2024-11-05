@@ -39,11 +39,10 @@ function save_text_chapter_verses($mysqli, $book_code, $chapter)
 	$prev_join = 0;
 	foreach ( $chapter['verses'] as $verse ) 
 	{
-		if ( $prev_join > 0 ) {
-			$prev_join -= 1;
-			//$verse['htmlText'] = '<span class="empty"></span>';
-			continue;
-		}
+		//if ( $prev_join > 0 ) {
+		//	$prev_join -= 1;
+		//	continue;
+		//}
 		$verses_str .= sprintf(
 			"($verse[id], $verse[join], $chapter[id], $book_code, '%s', $verse[start_paragraph]),",
 			$mysqli->real_escape_string($verse['htmlText'])
@@ -68,13 +67,12 @@ function select_verse_code($mysqli, $verse_number, $chapter_number, $book_code)
 		  AND chapter_number = $chapter_number
 		  AND translation_book = $book_code
 	";
-	if ($result = $mysqli->query($query)) 
-	{
-		$obj = $result->fetch_object();
+	$result = $mysqli->query($query);
+	
+	if ( $obj = $result->fetch_object() )
 		return $obj->code;
-	}
 	else 
-		die($query);
+		die("Verse not found ($query)\n");
 }
 
 function save_text_chapter_titles($mysqli, $book_code, $chapter) 

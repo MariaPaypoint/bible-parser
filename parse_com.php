@@ -1,7 +1,7 @@
 <?php
 
-$only_book = false;
-$only_chapter = false;
+$only_book = 2; // false
+$only_chapter = 19;
 
 require 'include.php';
 
@@ -21,8 +21,6 @@ function get_url($translation, $book, $chapter)
 		default: die("Incorrect translation ($translation)");
 	}
 
-	
-	
 	$url = "https://www.bible.com/bible/$translation_code/$BOOK.$chapter.$TRANSLATION";
 	return $url;
 }
@@ -68,6 +66,9 @@ function isNodeInQuote($node) {
 
 // Функция для проверки, является ли символ буквой или цифрой
 function isLetterOrDigit($char) {
+	return preg_match('/\p{L}|\p{N}/u', $char);
+}
+function isLetterOrDigitOrPunctuation($char) {
 	return preg_match('/\p{L}|\p{N}|,|;|:|\.|—/u', $char);
 }
 
@@ -130,7 +131,7 @@ function processVerseNode($node, &$htmlText, &$unformattedText, &$result, $verse
 
 					// Проверяем, нужно ли добавить пробел
 					$needsSpace = false;
-					if ($prevChar !== '' && isLetterOrDigit($prevChar)) {
+					if ($prevChar !== '' && isLetterOrDigitOrPunctuation($prevChar)) {
 						$firstChar = mb_substr($text, 0, 1);
 						if (isLetterOrDigit($firstChar)) {
 							$needsSpace = true;
@@ -158,7 +159,7 @@ function processVerseNode($node, &$htmlText, &$unformattedText, &$result, $verse
 
 						// Проверяем, нужно ли добавить пробел
 						$needsSpace = false;
-						if ($prevChar !== '' && isLetterOrDigit($prevChar)) {
+						if ($prevChar !== '' && isLetterOrDigitOrPunctuation($prevChar)) {
 							$firstChar = mb_substr($textContent, 0, 1);
 							if (isLetterOrDigit($firstChar)) {
 								$needsSpace = true;
@@ -184,7 +185,7 @@ function processVerseNode($node, &$htmlText, &$unformattedText, &$result, $verse
 
 						// Проверяем, нужно ли добавить пробел
 						$needsSpace = false;
-						if ($prevChar !== '' && isLetterOrDigit($prevChar)) {
+						if ($prevChar !== '' && isLetterOrDigitOrPunctuation($prevChar)) {
 							$firstChar = mb_substr($text, 0, 1);
 							if (isLetterOrDigit($firstChar)) {
 								$needsSpace = true;
@@ -246,13 +247,8 @@ function processVerses($verseNodes, &$result, $xpath, $doc, &$processedVerses, $
         // Помечаем все стихи как обработанные
         $processedVerses = array_merge($processedVerses, $verseIds);
 
-        // Собираем все узлы, относящиеся к этим стихам
-        $usfmQueryParts = [];
-        foreach ($usfmParts as $usfmPart) {
-            $usfmQueryParts[] = "@data-usfm='$usfmPart'";
-        }
-        $usfmQuery = implode(' or ', $usfmQueryParts);
-        $nodesForVerse = $xpath->query("//*[contains(@class, 'ChapterContent_verse__') and ($usfmQuery)]");
+        // Собираем все узлы, относящиеся к этому стиху (или объединённым стихам)
+		$nodesForVerse = $xpath->query("//*[contains(@class, 'ChapterContent_verse__') and @data-usfm='$usfm']");
 
         // Инициализируем переменные
         $htmlText = '';
@@ -324,42 +320,68 @@ function parse_chapter($doc, $book, $chapter_id)
 		'titles' => []
 	];
 
-	// Парсим заголовки
-	$headingNodes = $xpath->query("//span[contains(@class, 'ChapterContent_heading__')]");
-	foreach ($headingNodes as $headingNode) {
-		$titleText = trim($headingNode->textContent);
+	// Parsing titles
+	$titleAccumulator = '';
+	$verseNumber = 1; // Default to 1
 
-		// Инициализируем beforeVerseNumber для каждого заголовка
-		$beforeVerseNumber = null;
+	// Get all child nodes within the chapter, preserving order
+	$nodes = $xpath->query("//div[contains(@class, 'ChapterContent_chapter__')]/div");
 
-		// Ищем следующий элемент с номером стиха
-		$nextNode = $headingNode->parentNode->nextSibling;
-		while ($nextNode) {
-			if ($nextNode->nodeType !== XML_ELEMENT_NODE) {
-				$nextNode = $nextNode->nextSibling;
-				continue;
+	foreach ($nodes as $node) {
+		// Check if node is a title node
+		if (strpos($node->getAttribute('class'), 'ChapterContent_s1__') !== false) {
+			// This is a title node
+			$headingSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_heading__')]", $node)->item(0);
+			if ($headingSpan) {
+				$titleText = trim($headingSpan->textContent);
+				// Accumulate title text
+				if (!empty($titleAccumulator)) {
+					$titleAccumulator .= ' ';
+				}
+				$titleAccumulator .= $titleText;
 			}
-
-			// Ищем внутри $nextNode элемент с классом 'ChapterContent_verse__' и 'ChapterContent_label__'
-			$verseSpans = $xpath->query(".//span[contains(@class, 'ChapterContent_verse__')]", $nextNode);
-			foreach ($verseSpans as $verseSpan) {
-				$labelSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_label__')]", $verseSpan)->item(0);
-				if ($labelSpan) {
-					$labelText = trim($labelSpan->textContent);
-					if (preg_match('/^\d+$/', $labelText)) {
-						$verseNumber = intval($labelText);
-						$beforeVerseNumber = $verseNumber;
-						break 2; // Выходим из обоих циклов
+		} else {
+			// This is not a title node
+			// If there is accumulated title, add it to results
+			if (!empty($titleAccumulator)) {
+				// Try to find the first verse number after the title
+				$verseNumber = null;
+				$currentNode = $node;
+				while ($currentNode) {
+					// Look for verseSpan with 'ChapterContent_label__' inside
+					$verseSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_verse__')][.//span[contains(@class, 'ChapterContent_label__')]]", $currentNode)->item(0);
+					if ($verseSpan) {
+						$usfm = $verseSpan->getAttribute('data-usfm');
+						$usfmParts = explode('.', $usfm);
+						$verseNumber = intval(end($usfmParts));
+						break;
+					}
+					// Move to the next sibling node
+					$currentNode = $currentNode->nextSibling;
+					// Skip text nodes and comments
+					while ($currentNode && $currentNode->nodeType !== XML_ELEMENT_NODE) {
+						$currentNode = $currentNode->nextSibling;
 					}
 				}
+				if ($verseNumber === null) {
+					// If no verse found, default to 1
+					$verseNumber = 1;
+				}
+				$result['titles'][] = [
+					'before_verse_number' => $verseNumber,
+					'text' => $titleAccumulator
+				];
+				// Reset accumulator
+				$titleAccumulator = '';
 			}
-
-			$nextNode = $nextNode->nextSibling;
 		}
+	}
 
+	// After the loop, if there is any accumulated title left, add it to results
+	if (!empty($titleAccumulator)) {
 		$result['titles'][] = [
-			'before_verse_number' => $beforeVerseNumber ?? 1,
-			'text' => $titleText
+			'before_verse_number' => $verseNumber ?? 1,
+			'text' => $titleAccumulator
 		];
 	}
 
