@@ -1,7 +1,7 @@
 <?php
 
-$only_book = 2; // false
-$only_chapter = 19;
+$only_book = false; // false
+$only_chapter = false;
 
 require 'include.php';
 
@@ -352,8 +352,22 @@ function parse_chapter($doc, $book, $chapter_id)
 					$verseSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_verse__')][.//span[contains(@class, 'ChapterContent_label__')]]", $currentNode)->item(0);
 					if ($verseSpan) {
 						$usfm = $verseSpan->getAttribute('data-usfm');
-						$usfmParts = explode('.', $usfm);
-						$verseNumber = intval(end($usfmParts));
+						// Split data-usfm on '+'
+						$usfmVerseParts = explode('+', $usfm);
+						$verseNumbers = array();
+						foreach ($usfmVerseParts as $usfmVerse) {
+							$usfmParts = explode('.', $usfmVerse);
+							$verseNum = intval(end($usfmParts));
+							if ($verseNum > 0) {
+								$verseNumbers[] = $verseNum;
+							}
+						}
+						if (!empty($verseNumbers)) {
+							// Take the minimum verse number
+							$verseNumber = min($verseNumbers);
+						} else {
+							$verseNumber = 1; // Default if no verse number found
+						}
 						break;
 					}
 					// Move to the next sibling node
