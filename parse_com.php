@@ -304,119 +304,126 @@ function normalizeSpaces($text) {
 	return $text;
 }
 
+// Функция парсинга заголовков
+function parse_titles($xpath) {
+    $titles = [];
+    $titleAccumulator = '';
+    $verseNumber = 1; // По умолчанию 1
+
+    // Получаем все дочерние узлы внутри главы, сохраняя порядок
+    $nodes = $xpath->query("//div[contains(@class, 'ChapterContent_chapter__')]/div");
+
+    foreach ($nodes as $node) {
+        // Проверяем, является ли узел заголовком
+        if (strpos($node->getAttribute('class'), 'ChapterContent_s1__') !== false) {
+            // Это узел заголовка
+            $headingSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_heading__')]", $node)->item(0);
+            if ($headingSpan) {
+                $titleText = trim($headingSpan->textContent);
+                // Накопление текста заголовка
+                if (!empty($titleAccumulator)) {
+                    $titleAccumulator .= ' ';
+                }
+                $titleAccumulator .= $titleText;
+            }
+        } else {
+            // Это не узел заголовка
+            // Если есть накопленный заголовок, добавляем его в результаты
+            if (!empty($titleAccumulator)) {
+                // Пытаемся найти первый номер стиха после заголовка
+                $verseNumber = null;
+                $currentNode = $node;
+                while ($currentNode) {
+                    // Ищем verseSpan с 'ChapterContent_label__' внутри
+                    $verseSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_verse__')][.//span[contains(@class, 'ChapterContent_label__')]]", $currentNode)->item(0);
+                    if ($verseSpan) {
+                        $usfm = $verseSpan->getAttribute('data-usfm');
+                        // Разбиваем data-usfm по '+'
+                        $usfmVerseParts = explode('+', $usfm);
+                        $verseNumbers = array();
+                        foreach ($usfmVerseParts as $usfmVerse) {
+                            $usfmParts = explode('.', $usfmVerse);
+                            $verseNum = intval(end($usfmParts));
+                            if ($verseNum > 0) {
+                                $verseNumbers[] = $verseNum;
+                            }
+                        }
+                        if (!empty($verseNumbers)) {
+                            // Берем минимальный номер стиха
+                            $verseNumber = min($verseNumbers);
+                        } else {
+                            $verseNumber = 1; // По умолчанию
+                        }
+                        break;
+                    }
+                    // Переходим к следующему братскому узлу
+                    $currentNode = $currentNode->nextSibling;
+                    // Пропускаем текстовые узлы и комментарии
+                    while ($currentNode && $currentNode->nodeType !== XML_ELEMENT_NODE) {
+                        $currentNode = $currentNode->nextSibling;
+                    }
+                }
+                if ($verseNumber === null) {
+                    // Если стих не найден, устанавливаем 1 по умолчанию
+                    $verseNumber = 1;
+                }
+                $titles[] = [
+                    'before_verse_number' => $verseNumber,
+                    'text' => $titleAccumulator
+                ];
+                // Сбрасываем аккумулятор
+                $titleAccumulator = '';
+            }
+        }
+    }
+
+    // После цикла проверяем, остался ли не добавленный заголовок
+    if (!empty($titleAccumulator)) {
+        $titles[] = [
+            'before_verse_number' => $verseNumber ?? 1,
+            'text' => $titleAccumulator
+        ];
+    }
+
+    return $titles;
+}
+
+
 function parse_chapter($doc, $book, $chapter_id) 
-{	
+{
 	$verses = [];
-	$notes = [];
+    $notes = [];
 
-	// Создаем объект XPath для навигации по DOM
-	$xpath = new DOMXPath($doc);
+    // Создаем объект XPath для навигации по DOM
+    $xpath = new DOMXPath($doc);
 
-	// Массив для хранения результатов
-	$result = [
-		'id' => $chapter_id, // Номер главы
-		'verses' => [],
-		'notes' => [],
-		'titles' => []
-	];
+    // Массив для хранения результатов
+    $result = [
+        'id' => $chapter_id, // Номер главы
+        'verses' => [],
+        'notes' => [],
+        'titles' => []
+    ];
 
-	// Parsing titles
-	$titleAccumulator = '';
-	$verseNumber = 1; // Default to 1
+    // Парсинг заголовков
+    $result['titles'] = parse_titles($xpath);
 
-	// Get all child nodes within the chapter, preserving order
-	$nodes = $xpath->query("//div[contains(@class, 'ChapterContent_chapter__')]/div");
+    // Массив для отслеживания уже обработанных стихов
+    $processedVerses = [];
 
-	foreach ($nodes as $node) {
-		// Check if node is a title node
-		if (strpos($node->getAttribute('class'), 'ChapterContent_s1__') !== false) {
-			// This is a title node
-			$headingSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_heading__')]", $node)->item(0);
-			if ($headingSpan) {
-				$titleText = trim($headingSpan->textContent);
-				// Accumulate title text
-				if (!empty($titleAccumulator)) {
-					$titleAccumulator .= ' ';
-				}
-				$titleAccumulator .= $titleText;
-			}
-		} else {
-			// This is not a title node
-			// If there is accumulated title, add it to results
-			if (!empty($titleAccumulator)) {
-				// Try to find the first verse number after the title
-				$verseNumber = null;
-				$currentNode = $node;
-				while ($currentNode) {
-					// Look for verseSpan with 'ChapterContent_label__' inside
-					$verseSpan = $xpath->query(".//span[contains(@class, 'ChapterContent_verse__')][.//span[contains(@class, 'ChapterContent_label__')]]", $currentNode)->item(0);
-					if ($verseSpan) {
-						$usfm = $verseSpan->getAttribute('data-usfm');
-						// Split data-usfm on '+'
-						$usfmVerseParts = explode('+', $usfm);
-						$verseNumbers = array();
-						foreach ($usfmVerseParts as $usfmVerse) {
-							$usfmParts = explode('.', $usfmVerse);
-							$verseNum = intval(end($usfmParts));
-							if ($verseNum > 0) {
-								$verseNumbers[] = $verseNum;
-							}
-						}
-						if (!empty($verseNumbers)) {
-							// Take the minimum verse number
-							$verseNumber = min($verseNumbers);
-						} else {
-							$verseNumber = 1; // Default if no verse number found
-						}
-						break;
-					}
-					// Move to the next sibling node
-					$currentNode = $currentNode->nextSibling;
-					// Skip text nodes and comments
-					while ($currentNode && $currentNode->nodeType !== XML_ELEMENT_NODE) {
-						$currentNode = $currentNode->nextSibling;
-					}
-				}
-				if ($verseNumber === null) {
-					// If no verse found, default to 1
-					$verseNumber = 1;
-				}
-				$result['titles'][] = [
-					'before_verse_number' => $verseNumber,
-					'text' => $titleAccumulator
-				];
-				// Reset accumulator
-				$titleAccumulator = '';
-			}
-		}
-	}
+    // Парсим блоки (абзацы и цитаты)
+    $blockNodes = $xpath->query("//div[starts-with(@class, 'ChapterContent_p__') or starts-with(@class, 'ChapterContent_q1__') or starts-with(@class, 'ChapterContent_d__') or starts-with(@class, 'ChapterContent_m__')]");
 
-	// After the loop, if there is any accumulated title left, add it to results
-	if (!empty($titleAccumulator)) {
-		$result['titles'][] = [
-			'before_verse_number' => $verseNumber ?? 1,
-			'text' => $titleAccumulator
-		];
-	}
+    foreach ($blockNodes as $blockNode) {
+        processBlock($blockNode, $result, $xpath, $doc, $processedVerses);
+    }
 
-	// Массив для отслеживания уже обработанных стихов
-	$processedVerses = [];
+    // Обработка оставшихся стихов вне блоков
+    $verseNodes = $xpath->query("//span[contains(@class, 'ChapterContent_verse__') and @data-usfm]");
+    processVerses($verseNodes, $result, $xpath, $doc, $processedVerses, $startParagraph = 1);
 
-	// Парсим блоки (абзацы и цитаты)
-	$blockNodes = $xpath->query("//div[starts-with(@class, 'ChapterContent_p__') or starts-with(@class, 'ChapterContent_q1__') or starts-with(@class, 'ChapterContent_d__') or starts-with(@class, 'ChapterContent_m__')]");
-
-	foreach ($blockNodes as $blockNode) {
-		processBlock($blockNode, $result, $xpath, $doc, $processedVerses);
-	}
-
-	// Обработка оставшихся стихов вне блоков
-	$verseNodes = $xpath->query("//span[contains(@class, 'ChapterContent_verse__') and @data-usfm]");
-	processVerses($verseNodes, $result, $xpath, $doc, $processedVerses, $startParagraph = 1);
-
-	// Выводим результат в формате JSON
-	//echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-
-	return $result;
+    // Возвращаем результат
+    return $result;
 }
 
 function get_all_books($translation) 
