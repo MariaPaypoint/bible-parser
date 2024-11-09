@@ -621,6 +621,13 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
 		// print("File $filename_destination already exists\n");
 	}
 }
+
+function removeBrackets($str) {
+    // Удаляем только скобки, но оставляем содержимое внутри
+    $str = str_replace(['[', ']', '(', ')', '<', '>'], '', $str);
+    return $str;
+}
+
 function deleteTxtFiles($directory) {
     // Проверяем, существует ли директория
     if (!is_dir($directory)) {
@@ -642,8 +649,6 @@ function deleteTxtFiles($directory) {
             unlink($file);
         }
     }
-
-    echo "Все файлы с расширением .txt были удалены из директории.";
 }
 
 function rmdir_recursive($path) {

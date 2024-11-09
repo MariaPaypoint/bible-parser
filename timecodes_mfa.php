@@ -5,6 +5,7 @@ $only_chapter = 2;
 
 require 'include.php';
 
+// форматирование выровненных файлов в итоговый файл timecodes.json
 function format_all($translation, $voice)
 {
 	global $only_book, $only_chapter;
@@ -104,9 +105,12 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 		if ( $cc == 2 and $chapter == '01' ) continue; // book name
 		
 		$verse = [];
-		$verse["id"] = count($formatted) + 1;
-		$verse["begin"] = $interval[1];
-		$verse["end"] = $interval[2];
+		$verse['id'] = count($formatted) + 1;
+		$verse['begin'] = $interval[1];
+		$verse['end'] = $interval[2];
+
+		if ( $verse['end'] < $verse['begin'] )
+			die("Error: end ($verse[end]) < begin ($verse[begin]) IN book:$book, chapter:$chapter, verse:$verse[id], line:$line\n");
 		
 		array_push($formatted, $verse);
 	}
@@ -259,7 +263,7 @@ function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chap
 					break;
 				}
 		
-		$str .= $verse['unformatedText'] . "\n";
+		$str .= removeBrackets($verse['unformatedText']) . "\n";
 	}
 	
 	file_put_contents($filename, $str);
