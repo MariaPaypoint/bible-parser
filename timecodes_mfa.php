@@ -1,7 +1,7 @@
 <?php
 
-$only_book = false; // false
-$only_chapter = false;
+$only_book = 1; // false
+$only_chapter = 2;
 
 require 'include.php';
 
@@ -288,6 +288,7 @@ function prepare_files($translation, $voice, $mode)
 		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
 		
 		print("Book $book0 ... ");
+		deleteTxtFiles("audio/$translation/$voice/mfa_input/$book0/");
 	
 		foreach ( $book['chapters'] as $chapter )
 		{
@@ -331,7 +332,7 @@ function check_all($translation, $voice, $try)
 	$mfa_input_dir  = "audio/_fix/mfa_input";
 	$mfa_output_dir = "audio/_fix/mfa_output";
 	create_dir777_if_not_exists($mfa_input_dir, True);
-	#create_dir777_if_not_exists($mfa_output_dir, True);
+	create_dir777_if_not_exists($mfa_output_dir, True);
 	
 	// косяки выравнивания выявляем и копируем файлы
 	foreach ( $translationArray['books'] as $book )
@@ -375,6 +376,7 @@ function check_all($translation, $voice, $try)
 
 function save_fixes($translation, $voice)
 {
+	global $only_book, $only_chapter;
 	$mfa_output_dir = "audio/_fix/mfa_output";
 	$fix_count = 0;
 	foreach ( scandir($mfa_output_dir) as $f ) 
@@ -384,6 +386,9 @@ function save_fixes($translation, $voice)
 			$fix_count += 1;
 			list($book0, $chapter0) = explode('_', explode('.', $f)[0]);
 			
+			if ( $only_book!==false && (int)$book0!=$only_book ) continue;
+			if ( $only_chapter!==false && (int)$chapter0!=$only_chapter ) continue;
+
 			copy("$mfa_output_dir/{$book0}_$chapter0.json", "audio/$translation/$voice/mfa_output/$book0/$chapter0.json");
 			print "Fixed: book {$book0} / chapter $chapter0 fixed\n";
 		}

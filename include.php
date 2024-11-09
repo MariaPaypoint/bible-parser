@@ -579,13 +579,12 @@ function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
 
 function create_dir777_if_not_exists($dirname, $clear=False) 
 {
-	if ( file_exists($dirname) ) {
-		if ( $clear )
-			rmdir_recursive($dirname);
-	}
-	else {
+	if ( $clear && file_exists($dirname) )
+		rmdir_recursive($dirname);
+
+	if ( !file_exists($dirname) )
 		mkdir($dirname, 0777, true);
-	}
+	
 	chmod($dirname, 0777);
 }
 
@@ -621,6 +620,30 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
 	else {
 		// print("File $filename_destination already exists\n");
 	}
+}
+function deleteTxtFiles($directory) {
+    // Проверяем, существует ли директория
+    if (!is_dir($directory)) {
+        echo "Указанная директория не существует.";
+        return;
+    }
+
+    // Добавляем разделитель директорий, если его нет
+    if (substr($directory, -1) !== DIRECTORY_SEPARATOR) {
+        $directory .= DIRECTORY_SEPARATOR;
+    }
+
+    // Получаем все файлы с расширением .txt в директории
+    $files = glob($directory . '*.txt');
+
+    // Проходим по каждому файлу и удаляем его
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+
+    echo "Все файлы с расширением .txt были удалены из директории.";
 }
 
 function rmdir_recursive($path) {
