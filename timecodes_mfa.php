@@ -1,13 +1,13 @@
 <?php
 
-$books_limit    = 999;
-$chapters_limit = 999;
+$only_book = false; // false
+$only_chapter = false;
 
 require 'include.php';
 
 function format_all($translation, $voice)
 {
-	global $books_limit, $chapters_limit;
+	global $only_book, $only_chapter;
 	
 	print("\nFORMATTING:\n");
 	
@@ -26,8 +26,8 @@ function format_all($translation, $voice)
 	{
 		$book_number = $book['id'];
 		
-		//if ( $book_number < 40 or $book_number > 43 ) continue; // Только Евангелия
-		if ( $book_number > $books_limit ) continue;
+		if ( $only_book!==false && $book_number<$only_book ) continue;
+		if ( $only_book!==false && $book_number>$only_book ) break;
 		
 		$compute_chapters = true;
 		
@@ -47,7 +47,8 @@ function format_all($translation, $voice)
 		foreach ( $book['chapters'] as $chapter ) {
 			$chapter_number = $chapter['id'];
 			
-			if ( $chapter_number > $chapters_limit ) continue;
+			if ( $only_chapter!==false && $chapter_number<$only_chapter ) continue;
+			if ( $only_chapter!==false && $chapter_number>$only_chapter ) break;
 			
 			$chapter0 = str_pad($chapter_number, 2, '0', STR_PAD_LEFT);
 			
@@ -150,7 +151,7 @@ function get_interval($line, $offset, $begin, $old_end)
 
 function mfa_align_all($translation, $voice, $mode)
 {
-	global $books_limit;
+	global $only_book;
 	
 	print "\nALIGNING:\n" ;
 	
@@ -179,7 +180,11 @@ function mfa_align_all($translation, $voice, $mode)
 	}
 	
 	// выравнивание
-	for ( $book=1; $book<=min(66, $books_limit); $book++ ) {
+	for ( $book=1; $book<=66; $book++ ) {
+
+		if ( $only_book!==false && $book<$only_book ) continue;
+		if ( $only_book!==false && $book>$only_book ) break;
+		
 		$book0 = str_pad($book, 2, '0', STR_PAD_LEFT);
 		
 		if ( is_dir("$mfa_input_dir/$book0") )
@@ -267,7 +272,7 @@ function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chap
 
 function prepare_files($translation, $voice, $mode)
 {
-	global $books_limit, $chapters_limit;
+	global $only_book, $only_chapter;
 
 	print "\nPREPARING:\n" ;
 	
@@ -281,7 +286,8 @@ function prepare_files($translation, $voice, $mode)
 	{
 		$bookCode = $book['id'];
 		
-		if ( $bookCode > $books_limit ) continue;
+		if ( $only_book!==false && $bookCode<$only_book ) continue;
+		if ( $only_book!==false && $bookCode>$only_book ) break;
 		
 		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
 		
@@ -292,7 +298,8 @@ function prepare_files($translation, $voice, $mode)
 			$chapterCode = $chapter['id'];
 			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
 			
-			if ( $chapterCode > $chapters_limit ) continue;
+			if ( $only_chapter!==false && $chapterCode<$only_chapter ) continue;
+			if ( $only_chapter!==false && $chapterCode>$only_chapter ) break;
 			
 			// скачивание mp3
 			download_chapter_audio($translation, $voice, $bookCode, $chapterCode, $mode);
@@ -318,7 +325,7 @@ function prepare_environment($translation, $voice)
 
 function check_all($translation, $voice, $try) 
 {
-	global $books_limit;
+	global $only_book;
 	print "Checking alignment results, try $try...\n";
 	
 	$errors_count = 0;
@@ -334,7 +341,10 @@ function check_all($translation, $voice, $try)
 	// косяки выравнивания выявляем и копируем файлы
 	foreach ( $translationArray['books'] as $book )
 	{
-		if ( $book['id'] > $books_limit ) break;
+
+		if ( $only_book!==false && $book['id']<$only_book ) continue;
+		if ( $only_book!==false && $book['id']>$only_book ) break;
+		
 		$book0 = str_pad($book['id'], 2, '0', STR_PAD_LEFT);
 		foreach ( $book['chapters'] as $chapter ) 
 		{
