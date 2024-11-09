@@ -26,8 +26,7 @@ function format_all($translation, $voice)
 	{
 		$book_number = $book['id'];
 		
-		if ( $only_book!==false && $book_number<$only_book ) continue;
-		if ( $only_book!==false && $book_number>$only_book ) break;
+		if ( $only_book!==false && $book_number!=$only_book ) continue;
 		
 		$compute_chapters = true;
 		
@@ -47,8 +46,7 @@ function format_all($translation, $voice)
 		foreach ( $book['chapters'] as $chapter ) {
 			$chapter_number = $chapter['id'];
 			
-			if ( $only_chapter!==false && $chapter_number<$only_chapter ) continue;
-			if ( $only_chapter!==false && $chapter_number>$only_chapter ) break;
+			if ( $only_chapter!==false && $chapter_number!=$only_chapter ) continue;
 			
 			$chapter0 = str_pad($chapter_number, 2, '0', STR_PAD_LEFT);
 			
@@ -182,8 +180,7 @@ function mfa_align_all($translation, $voice, $mode)
 	// выравнивание
 	for ( $book=1; $book<=66; $book++ ) {
 
-		if ( $only_book!==false && $book<$only_book ) continue;
-		if ( $only_book!==false && $book>$only_book ) break;
+		if ( $only_book!==false && $book!=$only_book ) continue;
 		
 		$book0 = str_pad($book, 2, '0', STR_PAD_LEFT);
 		
@@ -286,8 +283,7 @@ function prepare_files($translation, $voice, $mode)
 	{
 		$bookCode = $book['id'];
 		
-		if ( $only_book!==false && $bookCode<$only_book ) continue;
-		if ( $only_book!==false && $bookCode>$only_book ) break;
+		if ( $only_book!==false && $bookCode!=$only_book ) continue;
 		
 		$book0 = str_pad($bookCode, 2, '0', STR_PAD_LEFT);
 		
@@ -298,8 +294,7 @@ function prepare_files($translation, $voice, $mode)
 			$chapterCode = $chapter['id'];
 			$chapter0 = str_pad($chapterCode, 2, '0', STR_PAD_LEFT);
 			
-			if ( $only_chapter!==false && $chapterCode<$only_chapter ) continue;
-			if ( $only_chapter!==false && $chapterCode>$only_chapter ) break;
+			if ( $only_chapter!==false && $chapterCode!=$only_chapter ) continue;
 			
 			// скачивание mp3
 			download_chapter_audio($translation, $voice, $bookCode, $chapterCode, $mode);
@@ -342,8 +337,7 @@ function check_all($translation, $voice, $try)
 	foreach ( $translationArray['books'] as $book )
 	{
 
-		if ( $only_book!==false && $book['id']<$only_book ) continue;
-		if ( $only_book!==false && $book['id']>$only_book ) break;
+		if ( $only_book!==false && $book['id']!=$only_book ) continue;
 		
 		$book0 = str_pad($book['id'], 2, '0', STR_PAD_LEFT);
 		foreach ( $book['chapters'] as $chapter ) 
