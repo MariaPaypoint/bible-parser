@@ -331,12 +331,12 @@ function determine_mode($position=3)
 	global $argv;
 	
 	if ( !isset($argv[$position]) )
-		die("Mode is not set (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
+		die("Mode is not set (wait one of: MODE_REPLACE, MODE_CHANGE, MODE_FINISH)\n\n");
 	
 	$mode = $argv[$position];
 	
-	if ( !in_array($mode, ['MODE_REPLACE', 'MODE_CHANGE']) )
-		die("Unknown mode: $mode (wait one of: MODE_REPLACE, MODE_CHANGE)\n\n");
+	if ( !in_array($mode, ['MODE_REPLACE', 'MODE_CHANGE', 'MODE_FINISH']) )
+		die("Unknown mode: $mode (wait one of: MODE_REPLACE, MODE_CHANGE, MODE_FINISH)\n\n");
 	
 	return $mode;
 }
@@ -577,16 +577,16 @@ function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
 	}
 }
 
-function create_dir777_if_not_exists($dirname, $clear=False)
+function create_dir777_if_not_exists($dirname, $clear=False) 
 {
-	if ( $clear )
-		rmdir_recursive($dirname);
-	
-	if ( !file_exists($dirname) ) 
-	{
-		mkdir($dirname, 0777, true);
-		chmod($dirname, 0777);
+	if ( file_exists($dirname) ) {
+		if ( $clear )
+			rmdir_recursive($dirname);
 	}
+	else {
+		mkdir($dirname, 0777, true);
+	}
+	chmod($dirname, 0777);
 }
 
 function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)

@@ -5,7 +5,7 @@ $chapters_limit = 999;
 
 require 'include.php';
 
-function format_all($translation, $voice, $mode)
+function format_all($translation, $voice)
 {
 	global $books_limit, $chapters_limit;
 	
@@ -14,9 +14,6 @@ function format_all($translation, $voice, $mode)
 	$filename = "audio/$translation/$voice/timecodes.json";
 	
 	$translationArray = get_translation_array($translation);
-	
-	if ( $mode == 'MODE_CHANGE' & file_exists($filename) )
-		$old_bible = json_decode(file_get_contents($filename), true); // чтоб все не переделывать
 	
 	$bible = [];
 	$bible['books'] = [];
@@ -36,23 +33,8 @@ function format_all($translation, $voice, $mode)
 		
 		$book_info = get_book_info($book_number);
 		
-		// не нужно, т.к. переформатирование недолгое, а выравнивание старое берем
-		// if ( $mode == 'MODE_CHANGE' ) {
-			// попытка найти
-			// $old_book = ['chapters' => []];
-			// foreach ( $old_bible['books'] as $b ) {
-				// if ( $b['id'] == $book_number ) {
-					// $old_book = $b;
-					// $compute_chapters = false;
-					// break;
-				// }
-			// }
-			// $bookArray = $old_book;
-		// }
-		// else {
-			$bookArray = [];
-			$bookArray['chapters'] = [];
-		// }
+		$bookArray = [];
+		$bookArray['chapters']  = [];
 		$bookArray['id']        = $book_number;
 		$bookArray['code']      = $book_info['code'];
 		$bookArray['shortName'] = $book_info['shortName'][$bible['lang']];
@@ -237,6 +219,7 @@ function is_output_full($in_dir, $out_dir)
 	return True;
 }
 
+
 function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chapter_number, $lang, $filename)
 {
 	$str = '';
@@ -339,14 +322,14 @@ function check_all($translation, $voice, $try)
 	print "Checking alignment results, try $try...\n";
 	
 	$errors_count = 0;
-	$fix_count = 0;
+	
 	$translationArray = get_translation_array($translation);
 	
 	// очистим и пересоздадим временные директории
 	$mfa_input_dir  = "audio/_fix/mfa_input";
 	$mfa_output_dir = "audio/_fix/mfa_output";
 	create_dir777_if_not_exists($mfa_input_dir, True);
-	create_dir777_if_not_exists($mfa_output_dir, True);
+	#create_dir777_if_not_exists($mfa_output_dir, True);
 	
 	// косяки выравнивания выявляем и копируем файлы
 	foreach ( $translationArray['books'] as $book )
@@ -359,7 +342,7 @@ function check_all($translation, $voice, $try)
 			
 			if ( !file_exists("audio/$translation/$voice/mfa_output/$book0/$chapter0.json") ) 
 			{
-				print "Error: book $book[id] / chapter $chapter[id] is empty!\n";
+				print "Need fix: book $book[id] / chapter $chapter[id] is empty!\n";
 				
 				// копируем файлы
 				copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.wav", "$mfa_input_dir/{$book0}_$chapter0.wav");
@@ -373,41 +356,58 @@ function check_all($translation, $voice, $try)
 	if ( $errors_count > 0 )
 	{
 		print "\n";
-		$beam = $try*1000;
-		$retry_beam = $try*1000+500;
+		$beam = $try*1000 + 100;
+		$retry_beam = $try*1000 + 500;
 		exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam $beam --retry_beam $retry_beam'");
-		foreach ( scandir($mfa_output_dir) as $f ) 
-			if ( $f != '.' and $f != '..' )
-			{
-				$fix_count += 1;
-				list($book0, $chapter0) = explode('_', explode('.', $f)[0]);
-				
-				copy("$mfa_output_dir/{$book0}_$chapter0.json", "audio/$translation/$voice/mfa_output/$book0/$chapter0.json");
-				print "Fixed: book {$book0} / chapter $chapter0 fixed\n";
-			}
+		$fix_count = save_fixes($translation, $voice);
 	}
+	else
+		$fix_count = 0;
 	
 	print "Checking done. $errors_count errors found, $fix_count fixed.\n";
 	
 	return $errors_count-$fix_count == 0;
 }
 
+function save_fixes($translation, $voice)
+{
+	$mfa_output_dir = "audio/_fix/mfa_output";
+	$fix_count = 0;
+	foreach ( scandir($mfa_output_dir) as $f ) 
+	{
+		if ( $f != '.' and $f != '..' )
+		{
+			$fix_count += 1;
+			list($book0, $chapter0) = explode('_', explode('.', $f)[0]);
+			
+			copy("$mfa_output_dir/{$book0}_$chapter0.json", "audio/$translation/$voice/mfa_output/$book0/$chapter0.json");
+			print "Fixed: book {$book0} / chapter $chapter0 fixed\n";
+		}
+	}
+	return $fix_count;
+}
+
 function do_all($translation, $voice, $mode)
 {
-	prepare_environment($translation, $voice);
-	
-	// скачивание
-	prepare_files($translation, $voice, $mode);
-	
-	// выравнивание
-	mfa_align_all($translation, $voice, $mode);
-	
+	if ( $mode != 'MODE_FINISH' ) 
+	{
+		prepare_environment($translation, $voice);
+		
+		// скачивание
+		prepare_files($translation, $voice, $mode);
+		
+		// выравнивание
+		mfa_align_all($translation, $voice, $mode);
+	}
+	else 
+		save_fixes($translation, $voice);
+
 	// проверка результатов
-	for ( $try=1; $try<=5; $try++ )
+	for ( $try=1; $try<=0; $try++ )
 		if ( check_all($translation, $voice, $try) ) break;
 	
 	// преобразование результатов 
-	format_all($translation, $voice, $mode);
+	format_all($translation, $voice);
 }
 
 $translation = determine_text_translation();
