@@ -1,7 +1,7 @@
 <?php
 
-$only_book = 1; // false
-$only_chapter = 2;
+$only_book = false; // false
+$only_chapter = false;
 
 require 'include.php';
 
@@ -109,9 +109,13 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 		$verse['begin'] = $interval[1];
 		$verse['end'] = $interval[2];
 
-		if ( $verse['end'] < $verse['begin'] )
-			die("Error: end ($verse[end]) < begin ($verse[begin]) IN book:$book, chapter:$chapter, verse:$verse[id], line:$line\n");
-		
+		if ( $verse['end'] < $verse['begin'] ) {
+			if ( containsLetter($line) )
+				die("Error: end ($verse[end]) < begin ($verse[begin]) IN book:$book, chapter:$chapter, verse:$verse[id], line:$line\n");
+			else 
+				$verse['end'] = $verse['begin']; // example: bti book:01, chapter:42, verse:3, line:—
+		}
+
 		array_push($formatted, $verse);
 	}
 	
@@ -416,7 +420,7 @@ function do_all($translation, $voice, $mode)
 		save_fixes($translation, $voice);
 
 	// проверка результатов
-	for ( $try=1; $try<=0; $try++ )
+	for ( $try=1; $try<=5; $try++ )
 		if ( check_all($translation, $voice, $try) ) break;
 	
 	// преобразование результатов 
@@ -426,6 +430,5 @@ function do_all($translation, $voice, $mode)
 $translation = determine_text_translation();
 $voice = determine_voice_4bbl($translation);
 $mode = determine_mode();
-// $step = determine_step();
 
 do_all($translation, $voice, $mode);

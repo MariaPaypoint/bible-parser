@@ -476,7 +476,7 @@ function get_all_books($translation)
 			
 			$chapterArray = parse_chapter($doc, $book, $chapter_id);
 
-			//$chapterArray = manual_fix($translation, $book, $chapter_id, $chapterArray);
+			$chapterArray = manual_fix($translation, $book, $chapter_id, $chapterArray);
 			
 			array_push($bookArray['chapters'], $chapterArray);
 			
@@ -492,6 +492,54 @@ function get_all_books($translation)
 	}
 
 	return $bible;
+}
+
+
+function manual_fix($translation, $book, $chapter_id, $chapterArray)
+{
+	if ( $translation == 'bti' )
+	{
+		$deleteNext = false;
+		$newVerses = [];
+		foreach ( $chapterArray['verses'] as $v )
+		{
+			if ( $v['unformatedText'] == '—' ) // bti быт.42:2
+			{
+				$deleteNext = true;
+				continue;
+			}
+			if ( $deleteNext ) 
+			{
+				$v['id'] -= 1;
+				$v['join'] += 1;
+				$deleteNext = false;
+			}
+			array_push($newVerses, $v);
+		}
+		$chapterArray['verses'] = $newVerses;
+
+		if ( $book == 52 and $chapter_id == 16 ) # Рим 16
+		{
+			$newVerses = [];
+			foreach ( $chapterArray['verses'] as $v )
+			{
+				if ( $v['id'] == 24 )
+				{
+					$v['htmlText'] = '[]';
+					$v['unformatedText'] = '[]';
+				}
+				elseif ( $v['id'] == 25 )
+				{
+					$v['htmlText'] = '[' . $v['htmlText'];
+					$v['unformatedText'] = '[' . $v['unformatedText'];
+				}
+				
+				array_push($newVerses, $v);
+			}
+			$chapterArray['verses'] = $newVerses;
+		}
+	}
+	return $chapterArray;
 }
 
 function prepare_environment() 

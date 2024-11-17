@@ -622,6 +622,11 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
 	}
 }
 
+function containsLetter($str) {
+    // Регулярное выражение для поиска хотя бы одной буквы (латиница и кириллица)
+    return preg_match('/[a-zA-Zа-яА-Я]/u', $str) === 1;
+}
+
 function removeBrackets($str) {
     // Удаляем только скобки, но оставляем содержимое внутри
     $str = str_replace(['[', ']', '(', ')', '<', '>'], '', $str);
