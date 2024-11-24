@@ -173,16 +173,31 @@ class BibleParser
         foreach ($blockNodes as $blockNode) {
             $this->processBlock($blockNode, $result, $xpath, $doc, $processedVerses);
         }
-
+    
+        // Process any remaining verses
         $verseNodes = $xpath->query("//span[contains(@class, 'ChapterContent_verse__') and @data-usfm]");
-        $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses, $startParagraph = 1);
-
+        $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses);
+    
         return $result;
     }
 
-    private function processVerses($verseNodes, &$result, $xpath, $doc, &$processedVerses, $startParagraph = 1) {
+    private function getParagraphNode($node) {
+        while ($node && $node->nodeName !== 'body') {
+            if ($node->nodeName === 'div' && (strpos($node->getAttribute('class'), 'ChapterContent_p__') === 0 ||
+                                              strpos($node->getAttribute('class'), 'ChapterContent_q1__') === 0 ||
+                                              strpos($node->getAttribute('class'), 'ChapterContent_d__') === 0 ||
+                                              strpos($node->getAttribute('class'), 'ChapterContent_m__') === 0)) {
+                return $node;
+            }
+            $node = $node->parentNode;
+        }
+        return null;
+    }
+
+    private function processVerses($verseNodes, &$result, $xpath, $doc, &$processedVerses) {
+        $prevParagraphNode = null;
         foreach ($verseNodes as $index => $verseNode) {
-            // Получаем номер(а) стиха(ов) из data-usfm
+            // Get usfm attribute to get the verse number(s)
             $usfm = $verseNode->getAttribute('data-usfm');
 
             // Разбиваем usfm по '+', если есть объединённые стихи
@@ -232,9 +247,17 @@ class BibleParser
             $htmlText = $this->normalizeSpaces($htmlText);
             $unformattedText = $this->normalizeSpaces($unformattedText);
 
-            // Устанавливаем start_paragraph
-            $startParagraphValue = ($index === 0) ? $startParagraph : 0;
+            // Get the paragraph node for the current verseNode
+            $paragraphNode = $this->getParagraphNode($verseNode);
 
+            // Determine if this is a new paragraph
+            $isNewParagraph = ($paragraphNode !== $prevParagraphNode);
+            $startParagraphValue = $isNewParagraph ? 1 : 0;
+
+            // Update $prevParagraphNode
+            $prevParagraphNode = $paragraphNode;
+
+            // Add the verse to result
             $result['verses'][] = [
                 'id' => $verseId,
                 'htmlText' => $htmlText,
@@ -392,9 +415,7 @@ class BibleParser
         $isQuote = strpos($class, 'ChapterContent_q1__') === 0;
 
         $verseNodes = $xpath->query(".//span[contains(@class, 'ChapterContent_verse__') and @data-usfm]", $blockNode);
-
-        $startParagraph = 1;
-        $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses, $startParagraph);
+        $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses);
     }
 
     // Функция для обработки дочерних узлов
@@ -539,7 +560,9 @@ class BibleParser
         print "\nStart {$this->translation} downloading\n\n";
 
         $this->bible = $this->get_all_books();
+        
         // Не сохраняем данные в файл
+        $this->save_to_file();
 
         return $this->bible; // Возвращаем данные для тестирования
     }

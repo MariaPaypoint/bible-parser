@@ -9,7 +9,7 @@ class BibleParserTest extends TestCase
     public function testBtiChapter4()
     {
         // Параметры для теста
-        $translation = 'syn';   // Синодальный перевод
+        $translation = 'bti';   // Синодальный перевод
         $only_book = 1;         // Книга Бытие
         $only_chapter = 1;      // Глава 1
 
@@ -45,7 +45,7 @@ class BibleParserTest extends TestCase
         $this->assertStringStartsWith($expectedTextStart, $firstVerse['unformatedText'], 'First verse text should start with expected text.');
 
         // Объявляем массив стихов, которые должны быть началом параграфов
-        $arrParagraphStart = [1, 6, 9, 11, 14, 20, 24, 26, 28, 31];
+        $arrParagraphStart = [1, 6, 9, 11, 14, 20, 24, 26, 27, 28, 31];
 
         // Проходим по всем стихам главы
         foreach ($bibleData['books'][0]['chapters'][0]['verses'] as $verse) {
