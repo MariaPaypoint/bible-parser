@@ -277,14 +277,17 @@ class BibleParser
                 $groupHtmlText = $this->normalizeSpaces($groupHtmlText);
                 $groupUnformattedText = $this->normalizeSpaces($groupUnformattedText);
     
-                // Если это не первая группа, оборачиваем в span с классом 'paragraph'
-                if ($groupIndex > 1) {
-                    $groupHtmlText = '<span class="paragraph">' . $groupHtmlText . '</span>';
-                }
+                // Проверяем, есть ли текст в группе
+                if (!empty(trim($groupHtmlText))) {
+                    // Если это не первая группа, оборачиваем в span с классом 'paragraph'
+                    if ($groupIndex > 1) {
+                        $groupHtmlText = '<span class="paragraph">' . $groupHtmlText . '</span>';
+                    }
     
-                // Добавляем к общему тексту
-                $htmlText .= $groupHtmlText;
-                $unformattedText .= $groupUnformattedText;
+                    // Добавляем к общему тексту
+                    $htmlText .= $groupHtmlText;
+                    $unformattedText .= $groupUnformattedText;
+                }
             }
     
             // Определяем, начинается ли стих с нового абзаца
@@ -307,7 +310,6 @@ class BibleParser
             ];
         }
     }
-    
     
 
     // Рекурсивная функция для обработки узлов стиха и примечаний
