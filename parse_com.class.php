@@ -184,7 +184,7 @@ class BibleParser
     private function getParagraphNode($node) {
         while ($node && $node->nodeName !== 'body') {
             if ($node->nodeName === 'div' && (strpos($node->getAttribute('class'), 'ChapterContent_p__') === 0 ||
-                                              strpos($node->getAttribute('class'), 'ChapterContent_q1__') === 0 ||
+//                                            strpos($node->getAttribute('class'), 'ChapterContent_q1__') === 0 ||
                                               strpos($node->getAttribute('class'), 'ChapterContent_d__') === 0 ||
                                               strpos($node->getAttribute('class'), 'ChapterContent_m__') === 0)) {
                 return $node;
@@ -197,25 +197,25 @@ class BibleParser
     private function processVerses($verseNodes, &$result, $xpath, $doc, &$processedVerses) {
         $prevParagraphNode = null;
         foreach ($verseNodes as $index => $verseNode) {
-            // Get usfm attribute to get the verse number(s)
+            // Получаем номер(а) стиха(ов) из атрибута data-usfm
             $usfm = $verseNode->getAttribute('data-usfm');
-
+    
             // Разбиваем usfm по '+', если есть объединённые стихи
             $usfmParts = explode('+', $usfm);
-
+    
             // Извлекаем номера стихов
             $verseIds = [];
             foreach ($usfmParts as $usfmPart) {
                 $parts = explode('.', $usfmPart);
                 $verseIds[] = intval(end($parts));
             }
-
+    
             // Основной verseId — первый в списке
             $verseId = $verseIds[0];
-
+    
             // Вычисляем значение для поля 'join'
             $join = count($verseIds) - 1;
-
+    
             // Проверяем, не были ли уже обработаны эти стихи
             $alreadyProcessed = false;
             foreach ($verseIds as $vid) {
@@ -227,37 +227,77 @@ class BibleParser
             if ($alreadyProcessed) {
                 continue;
             }
-
+    
             // Помечаем все стихи как обработанные
             $processedVerses = array_merge($processedVerses, $verseIds);
-
+    
             // Собираем все узлы, относящиеся к этому стиху (или объединённым стихам)
             $nodesForVerse = $xpath->query("//*[contains(@class, 'ChapterContent_verse__') and @data-usfm='$usfm']");
-
-            // Инициализируем переменные
+    
+            // Группируем узлы по родительским абзацам
+            $nodesWithParagraphs = [];
+            foreach ($nodesForVerse as $node) {
+                $paragraphNode = $this->getParagraphNode($node);
+                $nodesWithParagraphs[] = ['paragraphNode' => $paragraphNode, 'node' => $node];
+            }
+    
+            // Создаём группы узлов по абзацам
+            $groups = [];
+            foreach ($nodesWithParagraphs as $item) {
+                $paragraphNode = $item['paragraphNode'];
+                $node = $item['node'];
+    
+                // Обрабатываем случай, когда $paragraphNode равен null
+                if ($paragraphNode !== null) {
+                    $key = spl_object_hash($paragraphNode);
+                } else {
+                    $key = 'null';
+                }
+    
+                $groups[$key]['paragraphNode'] = $paragraphNode;
+                $groups[$key]['nodes'][] = $node;
+            }
+    
+            // Обработка каждой группы
             $htmlText = '';
             $unformattedText = '';
-            $prevChar = '';
-
-            foreach ($nodesForVerse as $node) {
-                $this->processVerseNode($node, $htmlText, $unformattedText, $result, $verseId, $xpath, $doc, false, $prevChar);
+            $groupIndex = 0;
+            foreach ($groups as $group) {
+                $groupIndex++;
+    
+                $groupHtmlText = '';
+                $groupUnformattedText = '';
+                $prevChar = '';
+    
+                foreach ($group['nodes'] as $node) {
+                    $this->processVerseNode($node, $groupHtmlText, $groupUnformattedText, $result, $verseId, $xpath, $doc, false, $prevChar);
+                }
+    
+                // Нормализуем пробелы
+                $groupHtmlText = $this->normalizeSpaces($groupHtmlText);
+                $groupUnformattedText = $this->normalizeSpaces($groupUnformattedText);
+    
+                // Если это не первая группа, оборачиваем в span с классом 'paragraph'
+                if ($groupIndex > 1) {
+                    $groupHtmlText = '<span class="paragraph">' . $groupHtmlText . '</span>';
+                }
+    
+                // Добавляем к общему тексту
+                $htmlText .= $groupHtmlText;
+                $unformattedText .= $groupUnformattedText;
             }
-
-            // Нормализуем пробелы
-            $htmlText = $this->normalizeSpaces($htmlText);
-            $unformattedText = $this->normalizeSpaces($unformattedText);
-
-            // Get the paragraph node for the current verseNode
-            $paragraphNode = $this->getParagraphNode($verseNode);
-
-            // Determine if this is a new paragraph
-            $isNewParagraph = ($paragraphNode !== $prevParagraphNode);
+    
+            // Определяем, начинается ли стих с нового абзаца
+            $firstGroup = reset($groups);
+            $firstParagraphNode = $firstGroup['paragraphNode'];
+            $isNewParagraph = ($firstParagraphNode !== $prevParagraphNode);
             $startParagraphValue = $isNewParagraph ? 1 : 0;
-
-            // Update $prevParagraphNode
-            $prevParagraphNode = $paragraphNode;
-
-            // Add the verse to result
+    
+            // Обновляем $prevParagraphNode
+            $lastGroup = end($groups);
+            $prevParagraphNode = $lastGroup['paragraphNode'];
+    
+            // Добавляем стих в результат
             $result['verses'][] = [
                 'id' => $verseId,
                 'htmlText' => $htmlText,
@@ -267,6 +307,8 @@ class BibleParser
             ];
         }
     }
+    
+    
 
     // Рекурсивная функция для обработки узлов стиха и примечаний
     private function processVerseNode($node, &$htmlText, &$unformattedText, &$result, $verseId, $xpath, $doc, $insideQuote = false, &$prevChar = '') {

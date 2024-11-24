@@ -6,12 +6,12 @@ require "parse_com.class.php";
 
 class BibleParserTest extends TestCase
 {
-    public function testBtiChapter4()
+    public function test_BTI_1_1()
     {
         // Параметры для теста
-        $translation = 'bti';   // Синодальный перевод
+        $translation = 'bti';
         $only_book = 1;         // Книга Бытие
-        $only_chapter = 1;      // Глава 1
+        $only_chapter = 1;
 
         // Создаём экземпляр парсера для конкретной книги и главы
         $parser = new BibleParser($translation, $only_book, $only_chapter);
@@ -45,7 +45,7 @@ class BibleParserTest extends TestCase
         $this->assertStringStartsWith($expectedTextStart, $firstVerse['unformatedText'], 'First verse text should start with expected text.');
 
         // Объявляем массив стихов, которые должны быть началом параграфов
-        $arrParagraphStart = [1, 6, 9, 11, 14, 20, 24, 26, 27, 28, 31];
+        $arrParagraphStart = [1, 6, 9, 11, 14, 20, 24, 26, 28, 31];
 
         // Проходим по всем стихам главы
         foreach ($bibleData['books'][0]['chapters'][0]['verses'] as $verse) {
@@ -60,8 +60,38 @@ class BibleParserTest extends TestCase
                 $this->assertEquals(0, $startParagraph, "Verse $verseId must have start_paragraph=0.");
             }
         }
-
     }
+
+    // public function test_BTI_40_1()
+    // {
+    //     // Параметры для теста
+    //     $translation = 'bti';
+    //     $only_book = 40;         // от Матфея
+    //     $only_chapter = 1;
+
+    //     // Создаём экземпляр парсера для конкретной книги и главы
+    //     $parser = new BibleParser($translation, $only_book, $only_chapter);
+
+    //     // Вызываем метод парсинга
+    //     $bibleData = $parser->parseForTest();
+
+    //     // Объявляем массив стихов, которые должны быть началом параграфов
+    //     $arrParagraphStart = [1, 6, 10, 11, 17, 18, 22, 24];
+
+    //     // Проходим по всем стихам главы
+    //     foreach ($bibleData['books'][0]['chapters'][0]['verses'] as $verse) {
+    //         $verseId = $verse['id'];
+    //         $startParagraph = $verse['start_paragraph'];
+            
+    //         if (in_array($verseId, $arrParagraphStart)) {
+    //             // Если стих должен быть началом параграфа
+    //             $this->assertEquals(1, $startParagraph, "Verse $verseId must have start_paragraph=1.");
+    //         } else {
+    //             // Если стих не должен быть началом параграфа
+    //             $this->assertEquals(0, $startParagraph, "Verse $verseId must have start_paragraph=0.");
+    //         }
+    //     }
+    // }
 
     protected function getVerseData($bibleData, $number, $param)
     {

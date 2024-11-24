@@ -43,7 +43,7 @@ php parse.php syn
 
 С сайта bible.com:
 ```sh
-php parse_com.php bti
+php parse_com.use.php bti
 ```
 
 Результат будет скачен с ресурса https://bible.by/syn/ в виде файла JSON и сохранен в директории `bible`.
@@ -79,6 +79,12 @@ php save_to_db.php TEXT syn
 Сохранение выравнивания:
 ```sh
 php save_to_db.php TIMECODES nrt new-russian
+```
+
+## 2.4. Запуск тестов
+
+```sh
+./vendor/bin/phpunit --bootstrap vendor/autoload.php tests/BibleParserTest.php
 ```
 
 # 3. Возможно пригодятся команды
