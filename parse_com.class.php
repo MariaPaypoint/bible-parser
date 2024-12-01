@@ -324,12 +324,14 @@ class BibleParser
             if ($noteTextNode) {
                 $noteText = $noteTextNode->textContent;
                 $position = mb_strlen($unformattedText);
+                $position_html = mb_strlen($htmlText);
 
                 $result['notes'][] = [
                     'id' => $noteId,
                     'text' => $noteText,
                     'verse_number' => $verseId,
-                    'position' => $position
+                    'position' => $position,
+                    'position_html' => $position_html
                 ];
             }
             // Не добавляем примечание в текст

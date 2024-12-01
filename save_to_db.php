@@ -102,7 +102,7 @@ function save_text_chapter_notes($mysqli, $book_code, $chapter)
 	foreach ( $chapter['notes'] as $note ) {
 		$verse_code = select_verse_code($mysqli, $note['verse_number'], $chapter['id'], $book_code);
 		$notes_str .= sprintf(
-			"($verse_code, $note[position], $note[id], '%s'),",
+			"($verse_code, $note[position], $note[position_html], $note[id], '%s'),",
 			$mysqli->real_escape_string($note['text'])
 		);
 	}
@@ -110,7 +110,7 @@ function save_text_chapter_notes($mysqli, $book_code, $chapter)
 		$notes_str = substr_replace($notes_str, '', -1);
 		$mysqli->query("
 			INSERT INTO translation_notes
-			  (translation_verse, position, note_number, text)
+			  (translation_verse, position, position_html, note_number, text)
 			VALUES 
 			  $notes_str
 		");

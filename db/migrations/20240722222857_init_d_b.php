@@ -56,6 +56,7 @@ final class InitDB extends AbstractMigration
 			`code` int NOT NULL AUTO_INCREMENT,
 			`translation_verse` int NOT NULL,
 			`position` smallint NOT NULL,
+			`position_html` SMALLINT NOT NULL,
 			`note_number` int NOT NULL,
 			`text` varchar(10000) NOT NULL,
 			PRIMARY KEY (`code`),
