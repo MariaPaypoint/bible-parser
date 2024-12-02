@@ -178,8 +178,58 @@ class BibleParser
         $verseNodes = $xpath->query("//span[contains(@class, 'ChapterContent_verse__') and @data-usfm]");
         $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses);
     
+        // перепозиционируем все примечания
+        $this->positionHtmlNotes($result);
         return $result;
     }
+
+    private function positionHtmlNotes(&$result) {
+        foreach ($result['notes'] as $index => $note) {
+            foreach($result['verses'] as $verse)
+                if ($verse['id'] == $note['verse_number']) {
+                    $unformatted = $verse['unformatedText'];
+                    $formatted = $verse['htmlText'];
+                }
+            $result['notes'][$index]['position_html'] = $this->getPositionInFormattedString($unformatted, $formatted, $note['position_text']);
+        } 
+    }
+
+    private function getPositionInFormattedString($unformatted, $formatted, $positionInUnformatted) {
+        $pos1 = 0; // Позиция в неформатированной строке
+        $pos2 = 0; // Позиция в форматированной строке
+        $lengthFormatted = strlen($formatted);
+        $insideTag = false;
+    
+        while ($pos2 < $lengthFormatted) {
+            //$char = $formatted[$pos2];
+            $char = mb_substr($formatted, $pos2, 1);
+
+            if ($char == '<') {
+                $insideTag = true;
+                //if ($positionInUnformatted==76) print("<");
+            } 
+            elseif ($char == '>') {
+                $insideTag = false;
+                //if ($positionInUnformatted==76) print(">");
+            }
+            elseif (!$insideTag) {
+                //if ($positionInUnformatted==76) print($char."[$pos1]");
+                if ($pos1 == $positionInUnformatted) {
+                    // Найдена соответствующая позиция
+                    //print($pos2." ".$formatted."\n");
+                    return $pos2;
+                }
+                $pos1++;
+            }
+    
+            $pos2++;
+        }
+    
+        // Если позиция не найдена
+        die('Position not found');
+        //return -1; 
+    }
+    
 
     private function getParagraphNode($node) {
         while ($node && $node->nodeName !== 'body') {
@@ -266,16 +316,16 @@ class BibleParser
                 $groupIndex++;
     
                 $groupHtmlText = '';
-                $groupUnformattedText = '';
+                //$groupUnformattedText = '';
                 $prevChar = '';
     
                 foreach ($group['nodes'] as $node) {
-                    $this->processVerseNode($node, $groupHtmlText, $groupUnformattedText, $result, $verseId, $xpath, $doc, false, $prevChar);
+                    $this->processVerseNode($node, $groupHtmlText, $unformattedText, $result, $verseId, $xpath, $doc, false, $prevChar);
                 }
     
                 // Нормализуем пробелы
                 $groupHtmlText = $this->normalizeSpaces($groupHtmlText);
-                $groupUnformattedText = $this->normalizeSpaces($groupUnformattedText);
+                $unformattedText = $this->normalizeSpaces($unformattedText);
     
                 // Проверяем, есть ли текст в группе
                 if (!empty(trim($groupHtmlText))) {
@@ -286,7 +336,7 @@ class BibleParser
     
                     // Добавляем к общему тексту
                     $htmlText .= $groupHtmlText;
-                    $unformattedText .= $groupUnformattedText;
+                    //$unformattedText .= $groupUnformattedText;
                 }
             }
     
@@ -323,15 +373,13 @@ class BibleParser
             $noteTextNode = $xpath->query(".//span[contains(@class, 'ChapterContent_body__')]", $node)->item(0);
             if ($noteTextNode) {
                 $noteText = $noteTextNode->textContent;
-                $position = mb_strlen($unformattedText);
-                $position_html = mb_strlen($htmlText);
+                $positionText = mb_strlen($unformattedText);
 
                 $result['notes'][] = [
                     'id' => $noteId,
                     'text' => $noteText,
                     'verse_number' => $verseId,
-                    'position' => $position,
-                    'position_html' => $position_html
+                    'position_text' => $positionText
                 ];
             }
             // Не добавляем примечание в текст
@@ -342,8 +390,8 @@ class BibleParser
             if ($node->nodeName === 'span' && strpos($node->getAttribute('class'), 'ChapterContent_add__') !== false) {
                 // Обрабатываем курсив
                 $emContent = '';
-                $emUnformatted = '';
-                $this->processChildNodes($node, $emContent, $emUnformatted, $result, $verseId, $xpath, $doc, $currentInsideQuote, $prevChar);
+                //$emUnformatted = '';
+                $this->processChildNodes($node, $emContent, $unformattedText, $result, $verseId, $xpath, $doc, $currentInsideQuote, $prevChar);
 
                 $emHtml = '<em>' . $emContent . '</em>';
 
@@ -352,20 +400,20 @@ class BibleParser
                 }
 
                 $htmlText .= $emHtml;
-                $unformattedText .= $emUnformatted;
+                //$unformattedText .= $emUnformatted;
                 $prevChar = mb_substr($unformattedText, -1);
             } else {
                 if ($node->hasChildNodes()) {
                     $childHtml = '';
-                    $childUnformatted = '';
-                    $this->processChildNodes($node, $childHtml, $childUnformatted, $result, $verseId, $xpath, $doc, $currentInsideQuote, $prevChar);
+                    //$childUnformatted = '';
+                    $this->processChildNodes($node, $childHtml, $unformattedText, $result, $verseId, $xpath, $doc, $currentInsideQuote, $prevChar);
 
                     if ($isQuote && !$insideQuote && trim($childHtml)) {
                         $childHtml = '<span class="quote">' . $childHtml . '</span>';
                     }
 
                     $htmlText .= $childHtml;
-                    $unformattedText .= $childUnformatted;
+                    //$unformattedText .= $childUnformatted;
                 } else {
                     if ($node->nodeType === XML_TEXT_NODE) {
                         $text = $node->textContent;

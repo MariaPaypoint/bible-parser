@@ -45,6 +45,7 @@ final class InitDB extends AbstractMigration
 			`chapter_number` smallint NOT NULL,
 			`translation_book` int NOT NULL,
 			`text` varchar(10000) NOT NULL,
+            `html` VARCHAR(10000) NOT NULL,
 			`start_paragraph` tinyint(1) NOT NULL,
 			PRIMARY KEY (`code`),
 			KEY `translation_book_idx` (`translation_book`),
@@ -55,7 +56,7 @@ final class InitDB extends AbstractMigration
 		$this->execute("CREATE TABLE IF NOT EXISTS `translation_notes` (
 			`code` int NOT NULL AUTO_INCREMENT,
 			`translation_verse` int NOT NULL,
-			`position` smallint NOT NULL,
+			`position_text` smallint NOT NULL,
 			`position_html` SMALLINT NOT NULL,
 			`note_number` int NOT NULL,
 			`text` varchar(10000) NOT NULL,

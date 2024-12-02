@@ -94,13 +94,29 @@ class BibleParserTest extends TestCase
                 $this->assertEquals(0, $startParagraph, "Verse $verseId must have start_paragraph=0.");
             }
         }
+
+        // примечание к 16 стиху
+        $note_position = $this->getNoteData($bibleData, 2, 'position_text');
+        $this->assertEquals(76, $note_position, "Incorrect Note 2 position_text.");
+        $note_position = $this->getNoteData($bibleData, 2, 'position_html');
+        $this->assertEquals(132, $note_position, "Incorrect Note 2 position_html.");
     }
 
     protected function getVerseData($bibleData, $number, $param)
     {
-        foreach ($bibleData['books'][0]['chapters'][0]['verses'] as $verse) {
-            if ($verse['id'] == $number) {
-                return $verse[$param];
+        foreach ($bibleData['books'][0]['chapters'][0]['verses'] as $item) {
+            if ($item['id'] == $number) {
+                return $item[$param];
+            }
+        }
+        $this->fail("Verse with id $number is not found");
+    }
+
+    protected function getNoteData($bibleData, $number, $param)
+    {
+        foreach ($bibleData['books'][0]['chapters'][0]['notes'] as $item) {
+            if ($item['id'] == $number) {
+                return $item[$param];
             }
         }
         $this->fail("Verse with id $number is not found");
