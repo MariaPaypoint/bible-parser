@@ -9,28 +9,28 @@ function clear_db_text($mysqli, $translation_code)
 		DELETE FROM translation_titles
 		WHERE before_translation_verse IN (SELECT code FROM translation_verses WHERE translation_book IN (SELECT code FROM translation_books WHERE translation = '$translation_code'))
 	");
-	printf("Затронутые строки (DELETE/translation_notes): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (DELETE/translation_notes): %d\n", $mysqli->affected_rows);
 	
 	// очистка примечаний
 	$mysqli->query("
 		DELETE FROM translation_notes
 		WHERE translation_verse IN (SELECT code FROM translation_verses WHERE translation_book IN (SELECT code FROM translation_books WHERE translation = '$translation_code'))
 	");
-	printf("Затронутые строки (DELETE/translation_notes): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (DELETE/translation_notes): %d\n", $mysqli->affected_rows);
 	
 	// очистка стихов
 	$mysqli->query("
 		DELETE FROM translation_verses
 		WHERE translation_book IN (SELECT code FROM translation_books WHERE translation = '$translation_code')
 	");
-	printf("Затронутые строки (DELETE/translation_verses): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (DELETE/translation_verses): %d\n", $mysqli->affected_rows);
 	
 	// очистка книг
 	$mysqli->query("
 		DELETE FROM translation_books
 		WHERE translation = '$translation_code'
 	");
-	printf("Затронутые строки (DELETE/translation_books): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (DELETE/translation_books): %d\n", $mysqli->affected_rows);
 }
 
 function save_text_chapter_verses($mysqli, $book_code, $chapter) 
@@ -57,7 +57,7 @@ function save_text_chapter_verses($mysqli, $book_code, $chapter)
 		VALUES 
 		  $verses_str
 	");
-	printf("Затронутые строки (INSERT/translation_verses): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (INSERT/translation_verses): %d\n", $mysqli->affected_rows);
 }
 function select_verse_code($mysqli, $verse_number, $chapter_number, $book_code) 
 {
@@ -94,7 +94,7 @@ function save_text_chapter_titles($mysqli, $book_code, $chapter)
 			VALUES 
 			  $titles_str
 		");
-		printf("Затронутые строки (INSERT/translation_titles): %d\n", $mysqli->affected_rows);
+		//printf("Затронутые строки (INSERT/translation_titles): %d\n", $mysqli->affected_rows);
 	}
 }
 function save_text_chapter_notes($mysqli, $book_code, $chapter) 
@@ -115,7 +115,7 @@ function save_text_chapter_notes($mysqli, $book_code, $chapter)
 			VALUES 
 			  $notes_str
 		");
-		printf("Затронутые строки (INSERT/translation_notes): %d\n", $mysqli->affected_rows);
+		//printf("Затронутые строки (INSERT/translation_notes): %d\n", $mysqli->affected_rows);
 	}
 }
 
@@ -129,7 +129,7 @@ function save_text_book($mysqli, $translation_code, $book)
 		  name              = '$book[fullName]'
 	");
 	$book_code = $mysqli->insert_id;
-	printf("Затронутые строки (INSERT/translation_books): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (INSERT/translation_books): %d\n", $mysqli->affected_rows);
 	
 	foreach ( $book['chapters'] as $chapter ) {
 		save_text_chapter_verses($mysqli, $book_code, $chapter);
@@ -167,7 +167,7 @@ function insert_or_update_translation($mysqli, $translation, $translationArray)
 			SET $new_fields_str
 			WHERE code = $translation_code
 		");
-		printf("Затронутые строки (UPDATE/translations): %d\n", $mysqli->affected_rows);
+		//printf("Затронутые строки (UPDATE/translations): %d\n", $mysqli->affected_rows);
 	}
 	else 
 	{
@@ -177,7 +177,7 @@ function insert_or_update_translation($mysqli, $translation, $translationArray)
 			SET $new_fields_str
 		");
 		$translation_code = $mysqli->insert_id;
-		printf("Затронутые строки (INSERT/translations): %d\n", $mysqli->affected_rows);
+		//printf("Затронутые строки (INSERT/translations): %d\n", $mysqli->affected_rows);
 
 		print "Translation $translation inserted to db with code $translation_code\n";
 	}
@@ -205,7 +205,7 @@ function clear_db_timecodes($mysqli, $voice_code)
 		DELETE FROM voice_alignments
 		WHERE voice = '$voice_code'
 	");
-	printf("Затронутые строки (DELETE/voice_alignments): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (DELETE/voice_alignments): %d\n", $mysqli->affected_rows);
 }
 
 function insert_or_update_voice($mysqli, $translation_code, $voice, $voiceInfo)
@@ -236,7 +236,7 @@ function insert_or_update_voice($mysqli, $translation_code, $voice, $voiceInfo)
 			SET $new_fields_str
 			WHERE code = $voice_code
 		");
-		printf("Затронутые строки (UPDATE/voices): %d\n", $mysqli->affected_rows);
+		//printf("Затронутые строки (UPDATE/voices): %d\n", $mysqli->affected_rows);
 	}
 	else 
 	{
@@ -246,7 +246,7 @@ function insert_or_update_voice($mysqli, $translation_code, $voice, $voiceInfo)
 			SET $new_fields_str
 		");
 		$voice_code = $mysqli->insert_id;
-		printf("Затронутые строки (INSERT/voices): %d\n", $mysqli->affected_rows);
+		//printf("Затронутые строки (INSERT/voices): %d\n", $mysqli->affected_rows);
 
 		print "Voice $voice inserted to db with code $voice_code\n";
 	}
@@ -332,7 +332,7 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 	";
 	// print $query;
 	$mysqli->query($query);
-	printf("Затронутые строки (INSERT/voice_alignments): %d\n", $mysqli->affected_rows);
+	//printf("Затронутые строки (INSERT/voice_alignments): %d\n", $mysqli->affected_rows);
 }
 
 function save_timecodes_to_db($mysqli, $translation, $voice) 

@@ -179,20 +179,43 @@ class BibleParser
         $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses);
     
         // перепозиционируем все примечания
-        $this->positionHtmlNotes($result);
+        $this->fixNotesPositions($result);
         return $result;
     }
 
-    private function positionHtmlNotes(&$result) {
+    private function fixNotesPositions(&$result) {
         foreach ($result['notes'] as $index => $note) {
             foreach($result['verses'] as $verse)
                 if ($verse['id'] == $note['verse_number']) {
-                    $unformatted = $verse['unformatedText'];
-                    $formatted = $verse['htmlText'];
+                    $unformatedText = $verse['unformatedText'];
+                    $htmlText = $verse['htmlText'];
                 }
-            $result['notes'][$index]['position_html'] = $this->getPositionInFormattedString($unformatted, $formatted, $note['position_text']);
+            $position_text = $this->adjustTextPosition($unformatedText, $note['position_text']);
+            $result['notes'][$index]['position_text'] = $position_text;
+            $result['notes'][$index]['position_html'] = $this->getPositionInFormattedString($unformatedText, $htmlText, $position_text);
         } 
     }
+
+    function adjustTextPosition($string, $notePosition) {
+        $length = mb_strlen($string);
+        
+        // Проверяем, что позиция примечания находится в пределах строки
+        if ($notePosition < 0 || $notePosition >= $length) {
+            return $notePosition; // Возвращаем исходную позицию, если она некорректна
+        }
+        
+        // Получаем часть строки от позиции примечания до конца
+        $substring = mb_substr($string, $notePosition);
+        
+        // Используем регулярное выражение для поиска знаков препинания в начале подстроки
+        if (preg_match('/^\p{P}+/u', $substring, $matches)) {
+            // Если сразу после позиции примечания идет знак препинания, смещаем позицию за него
+            $notePosition += mb_strlen($matches[0]);
+        }
+        
+        return $notePosition;
+    }
+    
 
     private function getPositionInFormattedString($unformatted, $formatted, $positionInUnformatted) {
         $pos1 = 0; // Позиция в неформатированной строке
@@ -214,10 +237,12 @@ class BibleParser
             }
             elseif (!$insideTag) {
                 //if ($positionInUnformatted==76) print($char."[$pos1]");
-                if ($pos1 == $positionInUnformatted) {
+                if ($positionInUnformatted == 0)
+                    return $pos2;
+                elseif ($pos1 == $positionInUnformatted-1) {
                     // Найдена соответствующая позиция
                     //print($pos2." ".$formatted."\n");
-                    return $pos2;
+                    return $pos2+1;
                 }
                 $pos1++;
             }
@@ -226,7 +251,7 @@ class BibleParser
         }
     
         // Если позиция не найдена
-        die('Position not found');
+        die("Position not found\n");
         //return -1; 
     }
     
@@ -361,6 +386,11 @@ class BibleParser
         }
     }
     
+    function removeVerseReference($text) {
+        // Используем регулярное выражение для поиска и удаления ссылки на стих в начале строки
+        $pattern = '/^\s*\d+:\d+\s*/u';
+        return preg_replace($pattern, '', $text);
+    }
 
     // Рекурсивная функция для обработки узлов стиха и примечаний
     private function processVerseNode($node, &$htmlText, &$unformattedText, &$result, $verseId, $xpath, $doc, $insideQuote = false, &$prevChar = '') {
@@ -372,7 +402,7 @@ class BibleParser
             $noteId = count($result['notes']) + 1;
             $noteTextNode = $xpath->query(".//span[contains(@class, 'ChapterContent_body__')]", $node)->item(0);
             if ($noteTextNode) {
-                $noteText = $noteTextNode->textContent;
+                $noteText = $this->normalizeSpaces($this->removeVerseReference($noteTextNode->textContent));
                 $positionText = mb_strlen($unformattedText);
 
                 $result['notes'][] = [
@@ -416,7 +446,7 @@ class BibleParser
                     //$unformattedText .= $childUnformatted;
                 } else {
                     if ($node->nodeType === XML_TEXT_NODE) {
-                        $text = $node->textContent;
+                        $text = ltrim($node->textContent);
                         $htmlEncodedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
                         // Проверяем, нужно ли добавить пробел
@@ -445,7 +475,7 @@ class BibleParser
                         $allowedTags = ['em', 'strong', 'sup', 'sub', 'u', 'i', 'b', 'br'];
                         if (in_array($node->nodeName, $allowedTags)) {
                             $nodeHtml = $doc->saveHTML($node);
-                            $textContent = $node->textContent;
+                            $textContent = ltrim($node->textContent);
 
                             // Проверяем, нужно ли добавить пробел
                             $needsSpace = false;
@@ -470,7 +500,7 @@ class BibleParser
                             $prevChar = mb_substr($textContent, -1);
                         } else {
                             // Добавляем текстовое содержимое
-                            $text = $node->textContent;
+                            $text = ltrim($node->textContent);
                             $htmlEncodedText = htmlspecialchars($text, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
                             // Проверяем, нужно ли добавить пробел

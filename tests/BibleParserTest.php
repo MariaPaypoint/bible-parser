@@ -95,11 +95,31 @@ class BibleParserTest extends TestCase
             }
         }
 
-        // примечание к 16 стиху
+        // примечание к 2 стиху
         $note_position = $this->getNoteData($bibleData, 2, 'position_text');
-        $this->assertEquals(76, $note_position, "Incorrect Note 2 position_text.");
+        $this->assertEquals(77, $note_position, "Incorrect Note 2 position_text.");
         $note_position = $this->getNoteData($bibleData, 2, 'position_html');
-        $this->assertEquals(132, $note_position, "Incorrect Note 2 position_html.");
+        $this->assertEquals(133, $note_position, "Incorrect Note 2 position_html.");
+    }
+
+    public function test_BTI_40_16()
+    {
+        // Параметры для теста
+        $translation = 'bti';
+        $only_book = 40;         // от Матфея
+        $only_chapter = 16;
+
+        // Создаём экземпляр парсера для конкретной книги и главы
+        $parser = new BibleParser($translation, $only_book, $only_chapter);
+
+        // Вызываем метод парсинга
+        $bibleData = $parser->parseForTest();
+
+        // примечание к 1 стиху
+        $note_position = $this->getNoteData($bibleData, 1, 'position_text');
+        $this->assertEquals(50, $note_position, "Incorrect Note 1 position_text.");
+        $note_position = $this->getNoteData($bibleData, 1, 'position_html');
+        $this->assertEquals(59, $note_position, "Incorrect Note 1 position_html.");
     }
 
     protected function getVerseData($bibleData, $number, $param)
