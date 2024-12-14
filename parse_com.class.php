@@ -32,6 +32,9 @@ class BibleParser
             case 'bti':
                 $translation_code = '313';
                 break;
+            case 'nrt':
+                $translation_code = '143';
+                break;
             case 'syn':
                 $translation_code = '400';
                 break;

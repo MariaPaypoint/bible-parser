@@ -1,6 +1,6 @@
 <?php
 
-$only_book = false; // false
+$only_book = 1; // false
 $only_chapter = false;
 
 require 'include.php';
