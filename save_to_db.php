@@ -311,7 +311,6 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 				foreach ( $chapter['verses'] as $verse ) {
 					$verses_codes_chapter = $verses_codes[$book_code][$chapter['id']];
 					/*
-					
 					while ( !array_key_exists($verse['id'] + $shift, $verses_codes_chapter) )
 					{
 						// похоже объединенный стих, нужно сдвинуть
@@ -320,37 +319,7 @@ function insert_alignment($mysqli, $voice_code, $books_codes, $verses_codes, $vo
 							die("Error: verse $verse[id] (".print_r($verse,1).") is not found in book $book[id] ($book[fullName]) / chapter $chapter[id]! verses_codes_chapter:(".print_r($verses_codes_chapter,1).")\n");
 						}
 					}
-					
 					*/
-
-					foreach ( $translationArray['books'] as $t_book ) {
-						if ( $t_book['id'] == $book['id'] ) {
-							foreach ( $t_book['chapters'] as $t_chapter ) {
-								if ( $t_chapter['id'] == $chapter['id'] ) {
-									$translation_chapter = $t_chapter;
-									break;
-								}
-							}
-							break;
-						}
-						die("Chapter not found in translation\n");
-					}
-
-					//print_r($verses_codes_chapter);
-					//die();
-
-					$is_title = false;
-					if ( $voiceInfo['readTitles'] ) {
-						foreach ( $translation_chapter['titles'] as $title ) {
-							if ( $title['before_verse_number'] == $verse['id'] ) {
-								$shift -= 1;
-								$is_title = true;
-								//print("Title found before $verse[id]\n");
-								break;
-							}
-						}
-					}
-					if ( $is_title ) continue;
 
 					$translation_verse = $verses_codes_chapter[$verse['id'] + $shift];
 					$str .= "($voice_code, $translation_verse, $verse[begin], $verse[end], NULL),";

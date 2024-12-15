@@ -273,14 +273,14 @@ function get_chapter_audio_url($translation, $voice, $book, $chapter)
 	//return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
 }
 
-function download_chapter_audio($translation, $voice, $book, $chapter, $mode)
+function download_chapter_audio($translation, $voice, $book, $chapter)
 {
 	$book0    = str_pad($book, 2, '0', STR_PAD_LEFT);
 	$chapter0 = str_pad($chapter, 2, '0', STR_PAD_LEFT);
 	
 	$filename = "audio/$translation/$voice/mp3/$book0/$chapter0.mp3";
 	
-	if ( !file_exists($filename) or $mode == 'MODE_REPLACE' )
+	if ( !file_exists($filename) )
 	{
 		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
 		
@@ -306,20 +306,14 @@ function create_dir777_if_not_exists($dirname, $clear=False)
 	chmod($dirname, 0777);
 }
 
-function convert_mp3_to_vaw($translation, $voice, $book, $chapter, $mode)
+function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
 {
 	$filename_source = "audio/$translation/$voice/mp3/$book/$chapter.mp3";
 	$filename_destination = "audio/$translation/$voice/mfa_input/$book/$chapter.wav";
 	
 	$file_exists = file_exists($filename_destination);
 	
-	if ( $file_exists and $mode == 'MODE_REPLACE' )
-	{
-		unlink($filename_destination);
-		// print "File $filename_destination deleted\n";
-	}
-	
-	if ( !$file_exists or $mode == 'MODE_REPLACE' ) 
+	if ( !$file_exists ) 
 	{
 		create_dir777_if_not_exists(dirname($filename_destination));
 		

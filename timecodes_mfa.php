@@ -1,6 +1,6 @@
 <?php
 
-$only_book = 1; // false
+$only_book = false; // false
 $only_chapter = false;
 
 require 'include.php';
@@ -15,6 +15,7 @@ function format_all($translation, $voice)
 	$filename = "audio/$translation/$voice/timecodes.json";
 	
 	$translationArray = get_translation_array($translation);
+	$voice_info = get_voice_info($voice);
 	
 	$bible = [];
 	$bible['books'] = [];
@@ -53,7 +54,7 @@ function format_all($translation, $voice)
 			
 			array_push($bookArray['chapters'], [
 				'id'     => $chapter_number, 
-				'verses' => get_formatted_chapter_timecodes_mfa($book0, $chapter0, $translation, $voice)
+				'verses' => get_formatted_chapter_timecodes_mfa($book0, $chapter0, $translation, $voice, $chapter, $voice_info)
 			]);
 		}
 		
@@ -73,10 +74,10 @@ function format_all($translation, $voice)
 	print("\nResult saved to $filename\n\n");
 }
 
-function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voice) 
+function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voice, $chapterArray, $voice_info) 
 {
 	global $entries;
-	
+
 	$filename_json = "audio/$translation/$voice/mfa_output/$book/$chapter.json";
 	if ( !file_exists($filename_json) ) {
 		print("$filename_json does not exists!\n\n");
@@ -91,21 +92,44 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 	$lines = file($filename_text);
 	
 	$formatted = [];
-	$cc = 0;
-	
+
+	$skip_begin = 0;
+	if ( $voice_info['readBookNames'] && ($chapter == '01' || $voice_info['readBookNamesAllChapters']) )
+		$skip_begin += 1;
+	if ( $voice_info['readChapterNumbers'] )
+		$skip_begin += 1;
+
+	$is_title = false;
 	foreach ( $lines as $line ) {
 		
-		$cc += 1;
+		if ( $skip_begin>0 ) {
+			$skip_begin -= 1;
+			continue;
+		}
+
+		$verse_id = count($formatted) + 1;
 		$line = mb_strtolower($line, 'UTF-8');
-		
 		$interval = get_interval($line, 0, -1, 0);
-		//print_r($interval);
+
 		
-		if ( $cc == 1 ) continue; // chapter
-		if ( $cc == 2 and $chapter == '01' ) continue; // book name
-		
+		// пропуск, если перед следующим стихом должен быть заголовок, но только один раз
+		if ( $is_title ) 
+			$is_title = false;
+		else {
+			if ( $voice_info['readTitles'] ) {
+				foreach ( $chapterArray['titles'] as $title ) {
+					if ( $title['before_verse_number'] == $verse_id ) {
+						$is_title = true;
+						//print("Title found before $verse_id\n");
+						break;
+					}
+				}
+			}
+		}
+		if ( $is_title ) continue;
+
 		$verse = [];
-		$verse['id'] = count($formatted) + 1;
+		$verse['id'] = $verse_id;
 		$verse['begin'] = $interval[1];
 		$verse['end'] = $interval[2];
 
@@ -306,9 +330,9 @@ function prepare_files($translation, $voice, $mode)
 			if ( $only_chapter!==false && $chapterCode!=$only_chapter ) continue;
 			
 			// скачивание mp3
-			download_chapter_audio($translation, $voice, $bookCode, $chapterCode, $mode);
+			download_chapter_audio($translation, $voice, $bookCode, $chapterCode);
 			// конверт в wav 
-			convert_mp3_to_vaw($translation, $voice, $book0, $chapter0, $mode);
+			convert_mp3_to_vaw($translation, $voice, $book0, $chapter0);
 			// подготовка текста
 			create_chapter_plain($voice, $voice_info, $chapter, $bookCode, $chapterCode, $lang, "audio/$translation/$voice/mfa_input/$book0/$chapter0.txt");
 			
