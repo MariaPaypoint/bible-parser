@@ -4,10 +4,11 @@ function get_translation_info($translation)
 {
 	switch ($translation)
 	{
-		case 'syn' : return ['lang'=>'ru' , 'shortName'=>'SYNO' , 'fullName'=>'Синодальный перевод'];
-		case 'nrt' : return ['lang'=>'ru' , 'shortName'=>'НРП'  , 'fullName'=>'Новый русский перевод'];
-		case 'bti' : return ['lang'=>'ru' , 'shortName'=>'BTI'  , 'fullName'=>'Библия в переводе Кулаковых'];
-		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible'];
+		case 'syn' : return ['lang'=>'ru' , 'shortName'=>'SYNO' , 'fullName'=>'Синодальный перевод',         'bibleComDigitCode'=>'167'];
+		case 'nrt' : return ['lang'=>'ru' , 'shortName'=>'НРП'  , 'fullName'=>'Новый русский перевод',       'bibleComDigitCode'=>'143'];
+		case 'bti' : return ['lang'=>'ru' , 'shortName'=>'BTI'  , 'fullName'=>'Библия в переводе Кулаковых', 'bibleComDigitCode'=>'313'];
+		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible',            'bibleComDigitCode'=>'1'];
+		case 'cars': return ['lang'=>'ru' , 'shortName'=>'CARS'  , 'fullName'=>'Восточный перевод',          'bibleComDigitCode'=>'385'];
 	}
 	
 	//return '';

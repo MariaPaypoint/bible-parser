@@ -23,24 +23,11 @@ class BibleParser
     }
 
     // Метод для получения URL
-    private function get_url($translation, $book, $chapter)
+    private function get_url($book, $chapter)
     {
-        $TRANSLATION = strtoupper($translation);
+        $TRANSLATION = strtoupper($this->translation);
         $BOOK = strtoupper($book);
-
-        switch ($translation) {
-            case 'bti':
-                $translation_code = '313';
-                break;
-            case 'nrt':
-                $translation_code = '143';
-                break;
-            case 'syn':
-                $translation_code = '400';
-                break;
-            default:
-                die("Incorrect translation ($translation)");
-        }
+        $translation_code = $this->bible['bibleComDigitCode'];
 
         $url = "https://www.bible.com/bible/$translation_code/$BOOK.$chapter.$TRANSLATION";
         return $url;
@@ -166,6 +153,21 @@ class BibleParser
             'notes' => [],
             'titles' => []
         ];
+
+        // Извлекаем заголовок с названием книги и номером главы
+        $headingNode = $xpath->query("//div[contains(@class, 'ChapterContent_reader__')]/h1")->item(0);
+        if ($headingNode) {
+            $heading = trim($headingNode->textContent); 
+            // Предполагаем формат "НазваниеКниги НомерГлавы"
+            // Например: "Начало 1"
+            $parts = explode(' ', $heading);
+            $extractedChapterNumber = array_pop($parts); 
+            $extractedBookName = implode(' ', $parts);
+
+            // Добавляем данные в итоговый массив
+            $result['bookName'] = $extractedBookName;
+            //$result['chapterNumber'] = $extractedChapterNumber;
+        }
 
         $result['titles'] = $this->parse_titles($xpath);
 
@@ -553,9 +555,9 @@ class BibleParser
     }
 
     // Метод для ручной корректировки
-    private function manual_fix($translation, $book, $chapter_id, $chapterArray)
+    private function manual_fix($book, $chapter_id, $chapterArray)
     {
-        if ($translation == 'bti') {
+        if ($this->translation == 'bti') {
             $deleteNext = false;
             $newVerses = [];
             foreach ($chapterArray['verses'] as $v) {
@@ -594,13 +596,12 @@ class BibleParser
     // Метод для получения всех книг
     private function get_all_books()
     {
-        $translation = $this->translation;
         $doc = new DOMDocument();
-        $bible = [];
-        $bible['code'] = $translation;
-        $bible = array_merge_recursive($bible, get_translation_info($translation));
+        $this->bible = [];
+        $this->bible['code'] = $this->translation;
+        $this->bible = array_merge_recursive($this->bible, get_translation_info($this->translation));
 
-        $bible['books'] = [];
+        $this->bible['books'] = [];
 
         $book = 0;
 
@@ -619,9 +620,8 @@ class BibleParser
             $bookArray = [];
             $bookArray['id'] = $book;
             $bookArray['code'] = $book_info['code'];
-            $bookArray['shortName'] = $book_info['shortName'][$bible['lang']];
-            $bookArray['fullName'] = $book_info['fullName'][$bible['lang']];
-
+            $bookArray['shortName'] = $book_info['shortName'][$this->bible['lang']];
+            $bookArray['fullName'] = $book_info['fullName'][$this->bible['lang']];
             $bookArray['chapters'] = [];
 
             while (true) {
@@ -630,7 +630,7 @@ class BibleParser
                 if ($this->only_chapter !== false && $chapter_id < $this->only_chapter) continue;
                 if ($this->only_chapter !== false && $chapter_id > $this->only_chapter) break;
 
-                $url = $this->get_url($translation, $book_info['code'], $chapter_id);
+                $url = $this->get_url($book_info['code'], $chapter_id);
                 $doc->loadHTMLFile($url);
                 if (strpos($doc->textContent, self::WRONG_TEXT) !== false)
                     break;
@@ -638,18 +638,18 @@ class BibleParser
                 print " $chapter_id";
 
                 $chapterArray = $this->parse_chapter($doc, $book, $chapter_id);
+                $chapterArray = $this->manual_fix($book, $chapter_id, $chapterArray);
 
-                $chapterArray = $this->manual_fix($translation, $book, $chapter_id, $chapterArray);
+                $bookArray['fullName'] = $chapterArray['bookName']; // подменяем название книги, на распарсенное со страницы
+                unset($chapterArray['bookName']);
 
                 array_push($bookArray['chapters'], $chapterArray);
             }
 
-            array_push($bible['books'], $bookArray);
+            array_push($this->bible['books'], $bookArray);
 
             print " OK\n";
         }
-
-        return $bible;
     }
 
     // Метод для подготовки окружения
@@ -662,9 +662,8 @@ class BibleParser
     private function save_to_file()
     {
         $translation = $this->translation;
-        $bible = $this->bible;
         $filename = 'text' . DIRECTORY_SEPARATOR . $translation . '.json';
-        file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        file_put_contents($filename, json_encode($this->bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 
         print "\nSuccess! File $filename saved.\n\n";
     }
@@ -676,7 +675,7 @@ class BibleParser
 
         print "\nStart {$this->translation} downloading\n\n";
 
-        $this->bible = $this->get_all_books();
+        $this->get_all_books();
         $this->save_to_file();
     }
 
@@ -686,7 +685,7 @@ class BibleParser
 
         print "\nStart {$this->translation} downloading\n\n";
 
-        $this->bible = $this->get_all_books();
+        $this->get_all_books();
         
         // Не сохраняем данные в файл
         $this->save_to_file();
