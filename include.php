@@ -313,7 +313,7 @@ function rmdir_recursive($path) {
 function deleteTxtFiles($directory) {
     // Проверяем, существует ли директория
     if (!is_dir($directory)) {
-        echo "Указанная директория не существует.";
+        // echo "Указанная директория не существует.";
         return;
     }
 
