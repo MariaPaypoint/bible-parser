@@ -8,7 +8,7 @@ function get_translation_info($translation)
 		case 'nrt' : return ['lang'=>'ru' , 'shortName'=>'НРП'  , 'fullName'=>'Новый русский перевод',       'bibleComDigitCode'=>'143'];
 		case 'bti' : return ['lang'=>'ru' , 'shortName'=>'BTI'  , 'fullName'=>'Библия в переводе Кулаковых', 'bibleComDigitCode'=>'313'];
 		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible',            'bibleComDigitCode'=>'1'];
-		case 'cars': return ['lang'=>'ru' , 'shortName'=>'CARS'  , 'fullName'=>'Восточный перевод',          'bibleComDigitCode'=>'385'];
+		case 'cars': return ['lang'=>'ru' , 'shortName'=>'CARS' , 'fullName'=>'Восточный перевод',           'bibleComDigitCode'=>'385'];
 	}
 	die('Incorrect translation.');
 }
@@ -29,7 +29,8 @@ function get_voice_info($voice)
 				'readBookNamesAllChapters' => 0,
 				'readChapterNumbers'       => 1,
 				'readTitles'               => 0,
-				'link'                     => $link_4bbl
+				'link'                     => $link_4bbl,
+				'link_template'            => 'https://4bbl.ru/data/syn-bondarenko/{book_zerofill}/{chapter_zerofill}.mp3'
 			];
 		case 'new-russian' : 
 			return [
@@ -40,18 +41,8 @@ function get_voice_info($voice)
 				'readBookNamesAllChapters' => 0,
 				'readChapterNumbers'       => 0,
 				'readTitles'               => 1,
-				'link'                     => $link_4bbl
-			];
-		case 'prudovsky' : 
-			return [
-				'name'                     => 'Илья Прудовский', 
-				'isMusic'                  => 1, 
-				'description'              => 'Текст читает Илья Ефимович Прудовский - легендарный диктор советского радио.',
-				'readBookNames'            => 1,
-				'readBookNamesAllChapters' => 1, // еще и разные названия в главах
-				'readChapterNumbers'       => 1,
-				'readTitles'               => 0,
-				'link'                     => 'https://mp3.only.bible/rst/%voice$s/%bookCode$s-%chapter$s.mp3'
+				'link'                     => $link_4bbl,
+				'link_template'            => 'https://4bbl.ru/data/new-russian/{book_zerofill}/{chapter_zerofill}.mp3'
 			];
 		case 'bti-prozorovsky' : 
 			return [
@@ -62,8 +53,34 @@ function get_voice_info($voice)
 				'readBookNamesAllChapters' => 0,
 				'readChapterNumbers'       => 1,
 				'readTitles'               => 0,
-				'link'                     => $link_4bbl
+				'link'                     => $link_4bbl,
+				'link_template'            => 'https://4bbl.ru/data/bti-prozorovsky/{book_zerofill}/{chapter_zerofill}.mp3'
 			];
+		case 'prudovsky' : 
+			return [
+				'name'                     => 'Илья Прудовский', 
+				'isMusic'                  => 1, 
+				'description'              => 'Текст читает Илья Ефимович Прудовский - легендарный диктор советского радио.',
+				'readBookNames'            => 1,
+				'readBookNamesAllChapters' => 1, // еще и разные названия в главах
+				'readChapterNumbers'       => 1,
+				'readTitles'               => 0,
+				'link'                     => 'https://mp3.only.bible/rst/%voice$s/%bookCode$s-%chapter$s.mp3',
+				'link_template'            => 'https://mp3.only.bible/rst/prudovsky/{book_alias}-{chapter}.mp3'
+			];
+		case 'cars':
+			return [
+				'name'                     => 'Чтец неизвестен', 
+				'isMusic'                  => 0, 
+				'description'              => 'К сожалению, найти информацию о том, кто так замечательно читает этот текст, в публичных источниках не удалось.',
+				'readBookNames'            => 1,
+				'readBookNamesAllChapters' => 1,
+				'readChapterNumbers'       => 1,
+				'readTitles'               => 0,
+				'link'                     => 'https://res.cloudinary.com/telosmedia-platform/video/upload/v1698132873/telosmedia-platform/tenant-files/cars/audio/books/%bookCodeUpper$s/chapters/%chapter$s/%bookCodeUpper$s-%chapter$s.mp3',
+				'link_template'            => 'https://res.cloudinary.com/telosmedia-platform/video/upload/v1698132873/telosmedia-platform/tenant-files/cars/audio/books/{book_alias_upper}/chapters/{chapter}/{book_alias_upper}-{chapter}.mp3'
+			];
+
 		default:
 			die("Incorrect voice [$voice].\n");
 	}
@@ -193,6 +210,76 @@ function get_book_prename($voice, $book_index) {
 			$base_ru_template[65] = 'Послание к Евреям';
 			$base_ru_template[66] = 'Откровение Иоанна';
 
+			return $base_ru_template[$book_index];
+		case 'cars':
+			// надо отслушать и настроить
+			$base_ru_template[1] = 'Начало';
+			$base_ru_template[2 ] = 'Исход';
+			$base_ru_template[3 ] = 'Левит';
+			$base_ru_template[4 ] = 'Числа';
+			$base_ru_template[5 ] = 'Второзаконие';
+			$base_ru_template[6 ] = 'Иешуа';
+			$base_ru_template[7 ] = 'Судьи';
+			$base_ru_template[8 ] = 'Руфь';
+			$base_ru_template[9 ] = '1 Царств';
+			$base_ru_template[10] = '2 Царств';
+			$base_ru_template[11] = '3 Царств';
+			$base_ru_template[12] = '4 Царств';
+			$base_ru_template[13] = '1 Летопись';
+			$base_ru_template[14] = '2 Летопись';
+			$base_ru_template[15] = 'Узайр';
+			$base_ru_template[16] = 'Неемия';
+			$base_ru_template[17] = 'Есфирь';
+			$base_ru_template[18] = 'Аюб';
+			$base_ru_template[19] = 'Забур';
+			$base_ru_template[20] = 'Мудрые изречения';
+			$base_ru_template[21] = 'Размышления';
+			$base_ru_template[22] = 'Песнь Сулеймана';
+			$base_ru_template[23] = 'Исаия';
+			$base_ru_template[24] = 'Иеремия';
+			$base_ru_template[25] = 'Плач';
+			$base_ru_template[26] = 'Езекиил';
+			$base_ru_template[27] = 'Даниял';
+			$base_ru_template[28] = 'Осия';
+			$base_ru_template[29] = 'Иоиль';
+			$base_ru_template[30] = 'Амос';
+			$base_ru_template[31] = 'Авдий';
+			$base_ru_template[32] = 'Юнус';
+			$base_ru_template[33] = 'Михей';
+			$base_ru_template[34] = 'Наум';
+			$base_ru_template[35] = 'Аввакум';
+			$base_ru_template[36] = 'Софония';
+			$base_ru_template[37] = 'Аггей';
+			$base_ru_template[38] = 'Закария';
+			$base_ru_template[39] = 'Малахия';
+			$base_ru_template[40] = 'Матай';
+			$base_ru_template[41] = 'Марк';
+			$base_ru_template[42] = 'Лука';
+            $base_ru_template[43] = 'Иохан';
+            $base_ru_template[44] = 'Деяния';
+            $base_ru_template[45] = 'Якуб';
+            $base_ru_template[46] = '1 Петира';
+            $base_ru_template[47] = '2 Петира';
+            $base_ru_template[48] = '1 Иохана';
+            $base_ru_template[49] = '2 Иохана';
+            $base_ru_template[50] = '3 Иохана';
+            $base_ru_template[51] = 'Иуда';
+            $base_ru_template[52] = 'Римлянам';
+            $base_ru_template[53] = '1 Коринфянам';
+            $base_ru_template[54] = '2 Коринфянам';
+            $base_ru_template[55] = 'Галатам';
+            $base_ru_template[56] = 'Эфесянам';
+            $base_ru_template[57] = 'Филиппийцам';
+            $base_ru_template[58] = 'Колоссянам';
+            $base_ru_template[59] = '1 Фессалоникийцам';
+            $base_ru_template[60] = '2 Фессалоникийцам';
+            $base_ru_template[61] = '1 Тиметею';
+            $base_ru_template[62] = '2 Тиметею';
+            $base_ru_template[63] = 'Титу';
+            $base_ru_template[64] = 'Филимону';
+            $base_ru_template[65] = 'Евреям';
+            $base_ru_template[66] = 'Откровение';
+			
 			return $base_ru_template[$book_index];
 		default:
 			die("Book prenames are not found for voice $voice \n");

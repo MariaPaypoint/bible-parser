@@ -99,8 +99,14 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 	if ( $voice_info['readChapterNumbers'] )
 		$skip_begin += 1;
 
+
+	// print("skip_begin: $skip_begin\n");
+
 	$is_title = false;
 	foreach ( $lines as $line ) {
+		
+		$line = mb_strtolower($line, 'UTF-8');
+		$interval = get_interval($line, 0, -1, 0);
 		
 		if ( $skip_begin>0 ) {
 			$skip_begin -= 1;
@@ -108,9 +114,8 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 		}
 
 		$verse_id = count($formatted) + 1;
-		$line = mb_strtolower($line, 'UTF-8');
-		$interval = get_interval($line, 0, -1, 0);
 
+		// print("verse_id: $verse_id, line: $line, interval: " . print_r($interval, 1) . "\n");
 		
 		// пропуск, если перед следующим стихом должен быть заголовок, но только один раз
 		if ( $is_title ) 
@@ -133,9 +138,13 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 		$verse['begin'] = $interval[1];
 		$verse['end'] = $interval[2];
 
+		// print_r($verse); print("\n");
+
 		if ( $verse['end'] < $verse['begin'] ) {
-			if ( containsLetter($line) )
-				die("Error: end ($verse[end]) < begin ($verse[begin]) IN book:$book, chapter:$chapter, verse:$verse[id], line:$line\n");
+			if ( containsLetter($line) ) {
+				print("Error: end [$verse[end]] < begin [$verse[begin]] IN book:$book, chapter:$chapter, verse:$verse[id], line:$line\n");
+				die();
+			}
 			else 
 				$verse['end'] = $verse['begin']; // example: bti book:01, chapter:42, verse:3, line:—
 		}
@@ -353,7 +362,7 @@ function prepare_environment($translation, $voice)
 
 function check_all($translation, $voice, $try) 
 {
-	global $only_book;
+	global $only_book, $only_chapter;
 	print "Checking alignment results, try $try...\n";
 	
 	$errors_count = 0;
@@ -369,12 +378,13 @@ function check_all($translation, $voice, $try)
 	// косяки выравнивания выявляем и копируем файлы
 	foreach ( $translationArray['books'] as $book )
 	{
-
 		if ( $only_book!==false && $book['id']!=$only_book ) continue;
 		
 		$book0 = str_pad($book['id'], 2, '0', STR_PAD_LEFT);
 		foreach ( $book['chapters'] as $chapter ) 
 		{
+			if ( $only_chapter!==false && $chapter['id']!=$only_chapter ) continue;
+
 			$chapter0 = str_pad($chapter['id'], 2, '0', STR_PAD_LEFT);
 			
 			if ( !file_exists("audio/$translation/$voice/mfa_output/$book0/$chapter0.json") ) 

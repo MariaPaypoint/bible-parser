@@ -107,127 +107,104 @@ function get_voice_array($translation, $voice)
 }
 
 // название главы, в том виде как она зачитывается чтецом
-function get_chapter_name($chapter)
-{
-
-	function get_chapter_name_1($digit) 
-	{
-		switch ($digit)
-		{
-			case 0 : return '';
-			case 1 : return 'первая';
-			case 2 : return 'вторая';
-			case 3 : return 'третья';
-			case 4 : return 'четвертая';
-			case 5 : return 'пятая';
-			case 6 : return 'шестая';
-			case 7 : return 'седьмая';
-			case 8 : return 'восьмая';
-			case 9 : return 'девятая';
-		}
+function get_chapter_name_1($digit) {
+	switch ($digit) {
+		case 0 : return '';
+		case 1 : return 'первая';
+		case 2 : return 'вторая';
+		case 3 : return 'третья';
+		case 4 : return 'четвертая';
+		case 5 : return 'пятая';
+		case 6 : return 'шестая';
+		case 7 : return 'седьмая';
+		case 8 : return 'восьмая';
+		case 9 : return 'девятая';
 	}
-	function get_chapter_name_2($digit) 
-	{
-		switch ($digit)
-		{
-			case 10 : return 'десятая';
-			case 11 : return 'одиннадцатая';
-			case 12 : return 'двенадцатая';
-			case 13 : return 'тринадцатая';
-			case 14 : return 'четырнадцатая';
-			case 15 : return 'пятнадцатая';
-			case 16 : return 'шестнадцатая';
-			case 17 : return 'семнадцатая';
-			case 18 : return 'восемнадцатая';
-			case 19 : return 'девятнадцатая';
-		}
+}
+function get_chapter_name_2($digit) {
+	switch ($digit) {
+		case 10 : return 'десятая';
+		case 11 : return 'одиннадцатая';
+		case 12 : return 'двенадцатая';
+		case 13 : return 'тринадцатая';
+		case 14 : return 'четырнадцатая';
+		case 15 : return 'пятнадцатая';
+		case 16 : return 'шестнадцатая';
+		case 17 : return 'семнадцатая';
+		case 18 : return 'восемнадцатая';
+		case 19 : return 'девятнадцатая';
 	}
-	function get_chapter_name_3($digit, $zero) 
-	{
-		switch ($digit)
-		{
-			case 2 : return $zero ? 'двадцатая'     : 'двадцать';
-			case 3 : return $zero ? 'тридцатая'     : 'тридцать';
-			case 4 : return $zero ? 'сороковая'     : 'сорок';
-			case 5 : return $zero ? 'пятидесятая'   : 'пятьдесят';
-			case 6 : return $zero ? 'шестидесятая'  : 'шестьдесят';
-			case 7 : return $zero ? 'семидесятая'   : 'семьдесят';
-			case 8 : return $zero ? 'восьмидесятая' : 'восемьдесят';
-			case 9 : return $zero ? 'девяностая'    : 'девяносто';
-		}
+}
+function get_chapter_name_3($digit, $zero) {
+	switch ($digit) {
+		case 2 : return $zero ? 'двадцатая'     : 'двадцать';
+		case 3 : return $zero ? 'тридцатая'     : 'тридцать';
+		case 4 : return $zero ? 'сороковая'     : 'сорок';
+		case 5 : return $zero ? 'пятидесятая'   : 'пятьдесят';
+		case 6 : return $zero ? 'шестидесятая'  : 'шестьдесят';
+		case 7 : return $zero ? 'семидесятая'   : 'семьдесят';
+		case 8 : return $zero ? 'восьмидесятая' : 'восемьдесят';
+		case 9 : return $zero ? 'девяностая'    : 'девяносто';
 	}
+}
+function get_chapter_name($chapter){
 	if ( $chapter <= 9 )
 		return get_chapter_name_1($chapter);
-	
 	elseif ( $chapter <= 19 )
 		return get_chapter_name_2($chapter);
-	
 	elseif ( $chapter == 100 )
 		return 'сотая';
-	
 	else
 		return ($chapter > 100 ? 'сто ' : '') . get_chapter_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_chapter_name_1($chapter % 10);
 }
 
 // Номера псалмов (в отличие от глав - род мужской)
-function get_ps_name($chapter)
-{
-	function get_ps_name_1($digit) 
-	{
-		switch ($digit)
-		{
-			case 1 : return 'первый';
-			case 2 : return 'второй';
-			case 3 : return 'третий';
-			case 4 : return 'четвертый';
-			case 5 : return 'пятый';
-			case 6 : return 'шестой';
-			case 7 : return 'седьмой';
-			case 8 : return 'восьмой';
-			case 9 : return 'девятый';
-		}
+function get_ps_name_1($digit) {
+	switch ($digit) {
+		case 1 : return 'первый';
+		case 2 : return 'второй';
+		case 3 : return 'третий';
+		case 4 : return 'четвертый';
+		case 5 : return 'пятый';
+		case 6 : return 'шестой';
+		case 7 : return 'седьмой';
+		case 8 : return 'восьмой';
+		case 9 : return 'девятый';
 	}
-	function get_ps_name_2($digit) 
-	{
-		switch ($digit)
-		{
-			case 10 : return 'десятый';
-			case 11 : return 'одиннадцатый';
-			case 12 : return 'двенадцатый';
-			case 13 : return 'тринадцатый';
-			case 14 : return 'четырнадцатый';
-			case 15 : return 'пятнадцатый';
-			case 16 : return 'шестнадцатый';
-			case 17 : return 'семнадцатый';
-			case 18 : return 'восемнадцатый';
-			case 19 : return 'девятнадцатый';
-		}
+}
+function get_ps_name_2($digit)  {
+	switch ($digit) {
+		case 10 : return 'десятый';
+		case 11 : return 'одиннадцатый';
+		case 12 : return 'двенадцатый';
+		case 13 : return 'тринадцатый';
+		case 14 : return 'четырнадцатый';
+		case 15 : return 'пятнадцатый';
+		case 16 : return 'шестнадцатый';
+		case 17 : return 'семнадцатый';
+		case 18 : return 'восемнадцатый';
+		case 19 : return 'девятнадцатый';
 	}
-
-	function get_ps_name_3($digit, $zero) 
-	{
-		switch ($digit)
-		{
-			case 2 : return $zero ? 'двадцатый'     : 'двадцать';
-			case 3 : return $zero ? 'тридцатый'     : 'тридцать';
-			case 4 : return $zero ? 'сороковой'     : 'сорок';
-			case 5 : return $zero ? 'пятидесятый'   : 'пятьдесят';
-			case 6 : return $zero ? 'шестидесятый'  : 'шестьдесят';
-			case 7 : return $zero ? 'семидесятый'   : 'семьдесят';
-			case 8 : return $zero ? 'восьмидесятый' : 'восемьдесят';
-			case 9 : return $zero ? 'девяностый'    : 'девяносто';
-		}
+}
+function get_ps_name_3($digit, $zero) {
+	switch ($digit) {
+		case 2 : return $zero ? 'двадцатый'     : 'двадцать';
+		case 3 : return $zero ? 'тридцатый'     : 'тридцать';
+		case 4 : return $zero ? 'сороковой'     : 'сорок';
+		case 5 : return $zero ? 'пятидесятый'   : 'пятьдесят';
+		case 6 : return $zero ? 'шестидесятый'  : 'шестьдесят';
+		case 7 : return $zero ? 'семидесятый'   : 'семьдесят';
+		case 8 : return $zero ? 'восьмидесятый' : 'восемьдесят';
+		case 9 : return $zero ? 'девяностый'    : 'девяносто';
 	}
-
+}
+function get_ps_name($chapter) {
 	if ( $chapter <= 9 )
 		return get_ps_name_1($chapter);
-	
 	elseif ( $chapter <= 19 )
 		return get_ps_name_2($chapter);
-	
 	elseif ( $chapter == 100 )
 		return 'сотый';
-	
 	else
 		return ($chapter > 100 ? 'сто ' : '') . get_ps_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_ps_name_1($chapter % 10);
 }
@@ -277,13 +254,14 @@ function get_chapter_audio_url($translation, $voice, $book, $chapter)
 	$book_info = get_book_info($book);
 	
 	$link = sprintfn($voice_info['link'], [
-		'voice'       => $voice,
-		'book'        => $book,
-		'chapter'     => $chapter,
-		'book0'       => str_pad($book, 2, '0', STR_PAD_LEFT),
-		'chapter0'    => str_pad($chapter, 2, '0', STR_PAD_LEFT),
-		'bookCode'    => $book_info['code'],
-		'translation' => $translation
+		'voice'         => $voice,
+		'book'          => $book,
+		'chapter'       => $chapter,
+		'book0'         => str_pad($book, 2, '0', STR_PAD_LEFT),
+		'chapter0'      => str_pad($chapter, 2, '0', STR_PAD_LEFT),
+		'bookCode'      => $book_info['code'],
+		'translation'   => $translation,
+		'bookCodeUpper' => strtoupper($book_info['code'])
 	]);
 	return $link;
 }

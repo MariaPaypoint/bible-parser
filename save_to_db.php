@@ -211,11 +211,12 @@ function clear_db_timecodes($mysqli, $voice_code)
 function insert_or_update_voice($mysqli, $translation_code, $voice, $voiceInfo)
 {
 	$new_fields_str = "
-		alias             = '$voice',
-		name              = '$voiceInfo[name]',
-		description       = '$voiceInfo[description]',
-		is_music          = '$voiceInfo[isMusic]',
-		translation = '$translation_code'
+		alias         = '$voice',
+		name          = '$voiceInfo[name]',
+		description   = '$voiceInfo[description]',
+		translation   = '$translation_code',
+		is_music      = '$voiceInfo[isMusic]',
+		link_template = '$voiceInfo[link_template]'
 	";
 	
 	// проверка наличия этого перевода и апдейт
