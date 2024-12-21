@@ -10,7 +10,6 @@ function get_db_cursor()
 }
 
 // получение входящих параметров
-
 function determine_text_translation($position=1)
 {
 	global $argv;
@@ -89,9 +88,7 @@ function determine_export_type($position=2)
 	return $step;
 }
 
-// для аудио
-
-
+// текст перевода
 function get_translation_array($translation)
 {
 	$filename = "text/$translation.json";
@@ -100,6 +97,7 @@ function get_translation_array($translation)
 	return $translationArray;
 }
 
+// выравнивание одного голоса
 function get_voice_array($translation, $voice)
 {
 	$filename = "audio/$translation/$voice/timecodes.json";
@@ -108,55 +106,56 @@ function get_voice_array($translation, $voice)
 	return $voiceArray;
 }
 
-function get_chapter_name_1($digit) 
-{
-	switch ($digit)
-	{
-		case 0 : return '';
-		case 1 : return 'первая';
-		case 2 : return 'вторая';
-		case 3 : return 'третья';
-		case 4 : return 'четвертая';
-		case 5 : return 'пятая';
-		case 6 : return 'шестая';
-		case 7 : return 'седьмая';
-		case 8 : return 'восьмая';
-		case 9 : return 'девятая';
-	}
-}
-function get_chapter_name_2($digit) 
-{
-	switch ($digit)
-	{
-		case 10 : return 'десятая';
-		case 11 : return 'одиннадцатая';
-		case 12 : return 'двенадцатая';
-		case 13 : return 'тринадцатая';
-		case 14 : return 'четырнадцатая';
-		case 15 : return 'пятнадцатая';
-		case 16 : return 'шестнадцатая';
-		case 17 : return 'семнадцатая';
-		case 18 : return 'восемнадцатая';
-		case 19 : return 'девятнадцатая';
-	}
-}
-function get_chapter_name_3($digit, $zero) 
-{
-	switch ($digit)
-	{
-		case 2 : return $zero ? 'двадцатая'     : 'двадцать';
-		case 3 : return $zero ? 'тридцатая'     : 'тридцать';
-		case 4 : return $zero ? 'сороковая'     : 'сорок';
-		case 5 : return $zero ? 'пятидесятая'   : 'пятьдесят';
-		case 6 : return $zero ? 'шестидесятая'  : 'шестьдесят';
-		case 7 : return $zero ? 'семидесятая'   : 'семьдесят';
-		case 8 : return $zero ? 'восьмидесятая' : 'восемьдесят';
-		case 9 : return $zero ? 'девяностая'    : 'девяносто';
-	}
-}
-
+// название главы, в том виде как она зачитывается чтецом
 function get_chapter_name($chapter)
 {
+
+	function get_chapter_name_1($digit) 
+	{
+		switch ($digit)
+		{
+			case 0 : return '';
+			case 1 : return 'первая';
+			case 2 : return 'вторая';
+			case 3 : return 'третья';
+			case 4 : return 'четвертая';
+			case 5 : return 'пятая';
+			case 6 : return 'шестая';
+			case 7 : return 'седьмая';
+			case 8 : return 'восьмая';
+			case 9 : return 'девятая';
+		}
+	}
+	function get_chapter_name_2($digit) 
+	{
+		switch ($digit)
+		{
+			case 10 : return 'десятая';
+			case 11 : return 'одиннадцатая';
+			case 12 : return 'двенадцатая';
+			case 13 : return 'тринадцатая';
+			case 14 : return 'четырнадцатая';
+			case 15 : return 'пятнадцатая';
+			case 16 : return 'шестнадцатая';
+			case 17 : return 'семнадцатая';
+			case 18 : return 'восемнадцатая';
+			case 19 : return 'девятнадцатая';
+		}
+	}
+	function get_chapter_name_3($digit, $zero) 
+	{
+		switch ($digit)
+		{
+			case 2 : return $zero ? 'двадцатая'     : 'двадцать';
+			case 3 : return $zero ? 'тридцатая'     : 'тридцать';
+			case 4 : return $zero ? 'сороковая'     : 'сорок';
+			case 5 : return $zero ? 'пятидесятая'   : 'пятьдесят';
+			case 6 : return $zero ? 'шестидесятая'  : 'шестьдесят';
+			case 7 : return $zero ? 'семидесятая'   : 'семьдесят';
+			case 8 : return $zero ? 'восьмидесятая' : 'восемьдесят';
+			case 9 : return $zero ? 'девяностая'    : 'девяносто';
+		}
+	}
 	if ( $chapter <= 9 )
 		return get_chapter_name_1($chapter);
 	
@@ -170,54 +169,56 @@ function get_chapter_name($chapter)
 		return ($chapter > 100 ? 'сто ' : '') . get_chapter_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_chapter_name_1($chapter % 10);
 }
 
-function get_ps_name_1($digit) 
-{
-	switch ($digit)
-	{
-		case 1 : return 'первый';
-		case 2 : return 'второй';
-		case 3 : return 'третий';
-		case 4 : return 'четвертый';
-		case 5 : return 'пятый';
-		case 6 : return 'шестой';
-		case 7 : return 'седьмой';
-		case 8 : return 'восьмой';
-		case 9 : return 'девятый';
-	}
-}
-function get_ps_name_2($digit) 
-{
-	switch ($digit)
-	{
-		case 10 : return 'десятый';
-		case 11 : return 'одиннадцатый';
-		case 12 : return 'двенадцатый';
-		case 13 : return 'тринадцатый';
-		case 14 : return 'четырнадцатый';
-		case 15 : return 'пятнадцатый';
-		case 16 : return 'шестнадцатый';
-		case 17 : return 'семнадцатый';
-		case 18 : return 'восемнадцатый';
-		case 19 : return 'девятнадцатый';
-	}
-}
-
-function get_ps_name_3($digit, $zero) 
-{
-	switch ($digit)
-	{
-		case 2 : return $zero ? 'двадцатый'     : 'двадцать';
-		case 3 : return $zero ? 'тридцатый'     : 'тридцать';
-		case 4 : return $zero ? 'сороковой'     : 'сорок';
-		case 5 : return $zero ? 'пятидесятый'   : 'пятьдесят';
-		case 6 : return $zero ? 'шестидесятый'  : 'шестьдесят';
-		case 7 : return $zero ? 'семидесятый'   : 'семьдесят';
-		case 8 : return $zero ? 'восьмидесятый' : 'восемьдесят';
-		case 9 : return $zero ? 'девяностый'    : 'девяносто';
-	}
-}
+// Номера псалмов (в отличие от глав - род мужской)
 function get_ps_name($chapter)
 {
+	function get_ps_name_1($digit) 
+	{
+		switch ($digit)
+		{
+			case 1 : return 'первый';
+			case 2 : return 'второй';
+			case 3 : return 'третий';
+			case 4 : return 'четвертый';
+			case 5 : return 'пятый';
+			case 6 : return 'шестой';
+			case 7 : return 'седьмой';
+			case 8 : return 'восьмой';
+			case 9 : return 'девятый';
+		}
+	}
+	function get_ps_name_2($digit) 
+	{
+		switch ($digit)
+		{
+			case 10 : return 'десятый';
+			case 11 : return 'одиннадцатый';
+			case 12 : return 'двенадцатый';
+			case 13 : return 'тринадцатый';
+			case 14 : return 'четырнадцатый';
+			case 15 : return 'пятнадцатый';
+			case 16 : return 'шестнадцатый';
+			case 17 : return 'семнадцатый';
+			case 18 : return 'восемнадцатый';
+			case 19 : return 'девятнадцатый';
+		}
+	}
+
+	function get_ps_name_3($digit, $zero) 
+	{
+		switch ($digit)
+		{
+			case 2 : return $zero ? 'двадцатый'     : 'двадцать';
+			case 3 : return $zero ? 'тридцатый'     : 'тридцать';
+			case 4 : return $zero ? 'сороковой'     : 'сорок';
+			case 5 : return $zero ? 'пятидесятый'   : 'пятьдесят';
+			case 6 : return $zero ? 'шестидесятый'  : 'шестьдесят';
+			case 7 : return $zero ? 'семидесятый'   : 'семьдесят';
+			case 8 : return $zero ? 'восьмидесятый' : 'восемьдесят';
+			case 9 : return $zero ? 'девяностый'    : 'девяносто';
+		}
+	}
+
 	if ( $chapter <= 9 )
 		return get_ps_name_1($chapter);
 	
@@ -231,30 +232,45 @@ function get_ps_name($chapter)
 		return ($chapter > 100 ? 'сто ' : '') . get_ps_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_ps_name_1($chapter % 10);
 }
 
+// Функция sprintfn выполняет форматирование строки по аналогии с sprintf,  
+// но с поддержкой именованных аргументов вместо числовых индексов.  
+//  
+// Параметры:  
+// $format - строка формата, содержащая именованные плейсхолдеры (например, %name$s).  
+// $args - массив аргументов, где ключи - это имена аргументов, используемые в строке формата.  
+//  
+// Возвращает:  
+// Строку с подставленными значениями или false в случае ошибки.  
 function sprintfn ($format, array $args = array()) {
-    // map of argument names to their corresponding sprintf numeric argument value
+    // Создаем карту имен аргументов и их соответствующих числовых значений для vsprintf.  
     $arg_nums = array_slice(array_flip(array_keys(array(0 => 0) + $args)), 1);
 
-    // find the next named argument. each search starts at the end of the previous replacement.
+    // Ищем следующий именованный аргумент в строке формата.  
+    // Поиск начинается с позиции $pos и продолжается до конца строки.  
     for ($pos = 0; preg_match('/(?<=%)([a-zA-Z_]\w*)(?=\$)/', $format, $match, PREG_OFFSET_CAPTURE, $pos);) {
+        // Получаем позицию и длину найденного аргумента.  
         $arg_pos = $match[0][1];
         $arg_len = strlen($match[0][0]);
         $arg_key = $match[1][0];
 
-        // programmer did not supply a value for the named argument found in the format string
+        // Если в массиве аргументов отсутствует ключ для найденного плейсхолдера,  
+        // генерируем предупреждение и прерываем выполнение функции.  
         if (! array_key_exists($arg_key, $arg_nums)) {
-            user_error("sprintfn(): Missing argument '$arg_key'", E_USER_WARNING);
+            user_error("sprintfn(): Отсутствует аргумент '$arg_key'", E_USER_WARNING);
             return false;
         }
 
-        // replace the named argument with the corresponding numeric one
+        // Заменяем именованный аргумент его числовым эквивалентом.  
         $format = substr_replace($format, $replace = $arg_nums[$arg_key], $arg_pos, $arg_len);
-        $pos = $arg_pos + strlen($replace); // skip to end of replacement for next iteration
+        // Перемещаем позицию на конец замены, чтобы избежать повторного поиска.  
+        $pos = $arg_pos + strlen($replace);
     }
 
+    // Форматируем строку с помощью vsprintf, передавая массив значений аргументов.  
     return vsprintf($format, array_values($args));
 }
 
+// формирование $url для скачивания аудиофайла (для любого сайта)
 function get_chapter_audio_url($translation, $voice, $book, $chapter)
 {
 	$voice_info = get_voice_info($voice);
@@ -270,31 +286,29 @@ function get_chapter_audio_url($translation, $voice, $book, $chapter)
 		'translation' => $translation
 	]);
 	return $link;
-	//return 'https://4bbl.ru/data/' . $voice . '/' . str_pad($book, 2, '0', STR_PAD_LEFT) . '/' . str_pad($chapter, 2, '0', STR_PAD_LEFT) . '.mp3';
 }
 
+// скачать и сохранить аудио главы
 function download_chapter_audio($translation, $voice, $book, $chapter)
 {
 	$book0    = str_pad($book, 2, '0', STR_PAD_LEFT);
 	$chapter0 = str_pad($chapter, 2, '0', STR_PAD_LEFT);
 	
-	$filename = "audio/$translation/$voice/mp3/$book0/$chapter0.mp3";
+	$save_filename = "audio/$translation/$voice/mp3/$book0/$chapter0.mp3";
 	
-	if ( !file_exists($filename) )
+	if ( !file_exists($save_filename) )
 	{
 		$url = get_chapter_audio_url($translation, $voice, $book, $chapter);
 		
-		if ( !file_exists(dirname($filename)) )
-			mkdir(dirname($filename), 0755, true);
+		if ( !file_exists(dirname($save_filename)) )
+			mkdir(dirname($save_filename), 0755, true);
 
-		file_put_contents($filename, file_get_contents($url));
-		// print("Audio $filename downloaded\n");
-	}
-	else {
-		// print("Audio $filename already exists\n");
+		file_put_contents($save_filename, file_get_contents($url));
+		// print("Audio saved to $save_filename\n");
 	}
 }
 
+// создать папку и дать ей 777
 function create_dir777_if_not_exists($dirname, $clear=False) 
 {
 	if ( $clear && file_exists($dirname) )
@@ -306,6 +320,42 @@ function create_dir777_if_not_exists($dirname, $clear=False)
 	chmod($dirname, 0777);
 }
 
+// Рекурсивное удаление папки
+function rmdir_recursive($path) {
+	if (is_file($path)) return unlink($path);
+	if (is_dir($path)) {
+		foreach(scandir($path) as $p) if (($p!='.') && ($p!='..'))
+			rmdir_recursive($path.DIRECTORY_SEPARATOR.$p);
+		return rmdir($path); 
+    }
+	return false;
+}
+
+// Удаляем все файлы с расширением .txt
+function deleteTxtFiles($directory) {
+    // Проверяем, существует ли директория
+    if (!is_dir($directory)) {
+        echo "Указанная директория не существует.";
+        return;
+    }
+
+    // Добавляем разделитель директорий, если его нет
+    if (substr($directory, -1) !== DIRECTORY_SEPARATOR) {
+        $directory .= DIRECTORY_SEPARATOR;
+    }
+
+    // Получаем все файлы с расширением .txt в директории
+    $files = glob($directory . '*.txt');
+
+    // Проходим по каждому файлу и удаляем его
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+}
+
+// конвертация аудио
 function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
 {
 	$filename_source = "audio/$translation/$voice/mp3/$book/$chapter.mp3";
@@ -334,50 +384,18 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
 	}
 }
 
+// Есть хотя бы одна буква (латиница и кириллица)
 function containsLetter($str) {
-    // Регулярное выражение для поиска хотя бы одной буквы (латиница и кириллица)
     return preg_match('/[a-zA-Zа-яА-Я]/u', $str) === 1;
 }
 
+// Удаляем только скобки, но оставляем содержимое внутри
 function removeBrackets($str) {
-    // Удаляем только скобки, но оставляем содержимое внутри
     $str = str_replace(['[', ']', '(', ')', '<', '>'], '', $str);
     return $str;
 }
 
-function deleteTxtFiles($directory) {
-    // Проверяем, существует ли директория
-    if (!is_dir($directory)) {
-        echo "Указанная директория не существует.";
-        return;
-    }
-
-    // Добавляем разделитель директорий, если его нет
-    if (substr($directory, -1) !== DIRECTORY_SEPARATOR) {
-        $directory .= DIRECTORY_SEPARATOR;
-    }
-
-    // Получаем все файлы с расширением .txt в директории
-    $files = glob($directory . '*.txt');
-
-    // Проходим по каждому файлу и удаляем его
-    foreach ($files as $file) {
-        if (is_file($file)) {
-            unlink($file);
-        }
-    }
-}
-
-function rmdir_recursive($path) {
-	if (is_file($path)) return unlink($path);
-	if (is_dir($path)) {
-		foreach(scandir($path) as $p) if (($p!='.') && ($p!='..'))
-			rmdir_recursive($path.DIRECTORY_SEPARATOR.$p);
-		return rmdir($path); 
-    }
-	return false;
-}
-
+// Выполнить shell-команду
 function exec_and_print($cmd, $return_error=False) 
 {
 	print "CMD: $cmd...";
@@ -398,5 +416,4 @@ function exec_and_print($cmd, $return_error=False)
 		else
 			die();
 	}
-
 }

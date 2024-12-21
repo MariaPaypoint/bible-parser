@@ -10,8 +10,6 @@ function get_translation_info($translation)
 		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible',            'bibleComDigitCode'=>'1'];
 		case 'cars': return ['lang'=>'ru' , 'shortName'=>'CARS'  , 'fullName'=>'Восточный перевод',          'bibleComDigitCode'=>'385'];
 	}
-	
-	//return '';
 	die('Incorrect translation.');
 }
 
