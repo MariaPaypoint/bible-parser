@@ -35,7 +35,7 @@ function get_voice_info($voice)
 				'readBookNamesAllChapters' => 0,
 				'readChapterNumbers'       => 1,
 				'readTitles'               => 0,
-				'link'                     => $link_4bbl,
+				'link'                     => 'https://4bbl.ru/data/syn-bondarenko/%book0$s/%chapter0$s.mp3',
 				'link_template'            => 'https://4bbl.ru/data/syn-bondarenko/{book_zerofill}/{chapter_zerofill}.mp3'
 			];
 		case 'new-russian' : 
