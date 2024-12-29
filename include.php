@@ -298,34 +298,35 @@ function create_dir777_if_not_exists($dirname, $clear=False)
 	chmod($dirname, 0777);
 }
 
-// Рекурсивное удаление папки
-function rmdir_recursive($path) {
-	if (is_file($path)) return unlink($path);
-	if (is_dir($path)) {
-		foreach(scandir($path) as $p) if (($p!='.') && ($p!='..'))
-			rmdir_recursive($path.DIRECTORY_SEPARATOR.$p);
-		return rmdir($path); 
+// Recursively delete a directory
+function rmdir_recursive($directory) {
+    if (is_file($directory)) {
+        return unlink($directory);
     }
-	return false;
+
+    if (is_dir($directory)) {
+        foreach (scandir($directory) as $item) {
+            if ($item !== '.' && $item !== '..') {
+                rmdir_recursive($directory . DIRECTORY_SEPARATOR . $item);
+            }
+        }
+        return rmdir($directory);
+    }
+
+    return false;
 }
 
-// Удаляем все файлы с расширением .txt
-function deleteTxtFiles($directory) {
-    // Проверяем, существует ли директория
+// Delete all .txt files in a directory.
+function deleteTxtFiles(string $directory): void
+{
+    $directory = rtrim($directory, DIRECTORY_SEPARATOR);
+
     if (!is_dir($directory)) {
-        // echo "Указанная директория не существует.";
         return;
     }
 
-    // Добавляем разделитель директорий, если его нет
-    if (substr($directory, -1) !== DIRECTORY_SEPARATOR) {
-        $directory .= DIRECTORY_SEPARATOR;
-    }
+    $files = glob($directory . DIRECTORY_SEPARATOR . '*.txt');
 
-    // Получаем все файлы с расширением .txt в директории
-    $files = glob($directory . '*.txt');
-
-    // Проходим по каждому файлу и удаляем его
     foreach ($files as $file) {
         if (is_file($file)) {
             unlink($file);

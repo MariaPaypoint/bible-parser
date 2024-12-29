@@ -205,18 +205,7 @@ function mfa_align_all($translation, $voice, $mode)
 	}
 	
 	// подготовка контейнера
-	$container_exist = exec('docker exec -it mfa echo 1');
-	if ( $container_exist ) 
-	{
-		print "Container mfa already exists.\n";
-		print "If you want, you can drop it manually [docker rm -f mfa] and repeat operation.\n\n";
-	}
-	else
-	{
-		exec_and_print('docker run -it -d --name mfa --volume "' . __DIR__ . '/audio:/audio" mmcauliffe/montreal-forced-aligner:v2.2.17');
-		exec_and_print('docker exec -it mfa bash -c "mfa models download dictionary russian_mfa --version v2.0.0a"');
-		exec_and_print('docker exec -it mfa bash -c "mfa models download acoustic russian_mfa --version v2.0.0a"');
-	}
+	prepare_container();
 	
 	// выравнивание
 	for ( $book=1; $book<=66; $book++ ) {
@@ -228,7 +217,7 @@ function mfa_align_all($translation, $voice, $mode)
 		if ( is_dir("$mfa_input_dir/$book0") )
 		{
 			// так может уже и не надо ничего делать?
-			if ( is_output_full("$mfa_input_dir/$book0", "$mfa_output_dir/$book0") )
+			if ( is_output_almost_full("$mfa_input_dir/$book0", "$mfa_output_dir/$book0") )
 			{
 				print "$mfa_output_dir/$book0 already is full, skipped\n";
 				continue;
@@ -241,7 +230,22 @@ function mfa_align_all($translation, $voice, $mode)
 	print("All files aligned. \n");
 }
 
-function is_output_full($in_dir, $out_dir)
+function prepare_container() {
+	$container_exist = exec('docker exec -it mfa echo 1');
+	if ( $container_exist ) 
+	{
+		print "Container mfa already exists.\n";
+		print "If you want, you can drop it manually [docker rm -f mfa] and repeat operation.\n\n";
+	}
+	else
+	{
+		exec_and_print('docker run -it -d --name mfa --volume "' . __DIR__ . '/audio:/audio" mmcauliffe/montreal-forced-aligner:v2.2.17');
+		exec_and_print('docker exec -it mfa bash -c "mfa models download dictionary russian_mfa --version v2.0.0a"');
+		exec_and_print('docker exec -it mfa bash -c "mfa models download acoustic russian_mfa --version v2.0.0a"');
+	}
+}
+
+function is_output_almost_full($in_dir, $out_dir)
 {
 	if ( !is_dir($out_dir) )
 		return False;
@@ -250,16 +254,25 @@ function is_output_full($in_dir, $out_dir)
 	$filtered_in_files = array_filter($in_files, function($value) {
 		return strripos($value, 'wav');
 	});
+	if ( count($filtered_in_files) == 0 ) 
+		return True;
 	// print_r($filtered_in_files);
 	// die();
+
+	$cc_not_exists = 0;
 	$out_files = scandir($out_dir);
 	foreach ( $filtered_in_files as $in_file )
 	{
 		$out_file = str_replace('.wav', '.json', $in_file);
-		if ( !in_array($out_file, $out_files) )
-			return False;
+		if ( !in_array($out_file, $out_files) ) {
+			$cc_not_exists += 1;
+			//return False;
+		}
 	}
-	return True;
+
+	// до 30% нехватки пропустим потом через фикс
+	if ( $cc_not_exists / count($filtered_in_files) < 0.3 ) 
+		return True;
 }
 
 
@@ -384,7 +397,7 @@ function check_all($translation, $voice, $try)
 		foreach ( $book['chapters'] as $chapter ) 
 		{
 			if ( $only_chapter!==false && $chapter['id']!=$only_chapter ) continue;
-
+			
 			$chapter0 = str_pad($chapter['id'], 2, '0', STR_PAD_LEFT);
 			
 			if ( !file_exists("audio/$translation/$voice/mfa_output/$book0/$chapter0.json") ) 
@@ -396,15 +409,19 @@ function check_all($translation, $voice, $try)
 				copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.txt", "$mfa_input_dir/{$book0}_$chapter0.txt");
 				
 				$errors_count += 1;
+				if ( $errors_count >= 3 ) break;
 			}
+
+			if ( $errors_count >= 3 ) break;
 		}
 	}
 	
 	if ( $errors_count > 0 )
 	{
 		print "\n";
-		$beam = $try*1000 + 100;
-		$retry_beam = $try*1000 + 500;
+		$beam = $try*1000 - 500;
+		$retry_beam = $try*1000;
+		prepare_container();
 		exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam $beam --retry_beam $retry_beam'");
 		$fix_count = save_fixes($translation, $voice);
 	}
@@ -418,6 +435,7 @@ function check_all($translation, $voice, $try)
 
 function save_fixes($translation, $voice)
 {
+	print "Saving fixes...\n";
 	global $only_book, $only_chapter;
 	$mfa_output_dir = "audio/_fix/mfa_output";
 	$fix_count = 0;
@@ -435,13 +453,19 @@ function save_fixes($translation, $voice)
 			print "Fixed: book {$book0} / chapter $chapter0 fixed\n";
 		}
 	}
+	if ( $fix_count == 0 ) 
+		print "Nothing fixed.\n";
+	else 
+		print "$fix_count fixed.\n";
+
 	return $fix_count;
 }
 
 function do_all($translation, $voice, $mode)
 {
-	if ( $mode != 'MODE_FINISH' ) 
-	{
+	if ( $mode == 'MODE_FINISH' ) 
+		save_fixes($translation, $voice);
+	else {
 		prepare_environment($translation, $voice);
 		
 		// скачивание
@@ -450,8 +474,6 @@ function do_all($translation, $voice, $mode)
 		// выравнивание
 		mfa_align_all($translation, $voice, $mode);
 	}
-	else 
-		save_fixes($translation, $voice);
 
 	// проверка результатов
 	for ( $try=1; $try<=5; $try++ )

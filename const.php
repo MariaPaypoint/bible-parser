@@ -1,16 +1,20 @@
 <?php
 
-function get_translation_info($translation)
+function getTranslationInfo($translation)
 {
-	switch ($translation)
-	{
-		case 'syn' : return ['lang'=>'ru' , 'shortName'=>'SYNO' , 'fullName'=>'Синодальный перевод',         'bibleComDigitCode'=>'167'];
-		case 'nrt' : return ['lang'=>'ru' , 'shortName'=>'НРП'  , 'fullName'=>'Новый русский перевод',       'bibleComDigitCode'=>'143'];
-		case 'bti' : return ['lang'=>'ru' , 'shortName'=>'BTI'  , 'fullName'=>'Библия в переводе Кулаковых', 'bibleComDigitCode'=>'313'];
-		case 'kjv' : return ['lang'=>'ru' , 'shortName'=>'KJV'  , 'fullName'=>'King James Bible',            'bibleComDigitCode'=>'1'];
-		case 'cars': return ['lang'=>'ru' , 'shortName'=>'CARS' , 'fullName'=>'Восточный перевод',           'bibleComDigitCode'=>'385'];
-	}
-	die('Incorrect translation.');
+    $translations = [
+        'syn'  => ['lang' => 'ru', 'shortName' => 'SYNO', 'fullName' => 'Синодальный перевод', 'bibleComDigitCode' => '167'],
+        'nrt'  => ['lang' => 'ru', 'shortName' => 'НРП',  'fullName' => 'Новый русский перевод', 'bibleComDigitCode' => '143'],
+        'bti'  => ['lang' => 'ru', 'shortName' => 'BTI',  'fullName' => 'Библия в переводе Кулаковых', 'bibleComDigitCode' => '313'],
+        'kjv'  => ['lang' => 'ru', 'shortName' => 'KJV',  'fullName' => 'King James Bible', 'bibleComDigitCode' => '1'],
+        'cars' => ['lang' => 'ru', 'shortName' => 'CARS', 'fullName' => 'Восточный перевод', 'bibleComDigitCode' => '385'],
+    ];
+
+    if (array_key_exists($translation, $translations)) {
+        return $translations[$translation];
+    }
+
+    throw new InvalidArgumentException('Incorrect translation.');
 }
 
 function get_voice_info($voice)
@@ -368,3 +372,4 @@ function get_book_info($book_index)
 	
 	return false;
 }
+
