@@ -411,7 +411,7 @@ function get_book_info($book_index)
 		case 18: return ['code'=>'job', 'shortName'=>['en'=>'Job'   , 'ru'=>'Иов'  ], 'fullName'=>['en'=>'Job'             , 'ru'=>'Иов'				], 'code2'=>'Job'	];
 		case 19: return ['code'=>'psa', 'shortName'=>['en'=>'Ps'    , 'ru'=>'Пс'   ], 'fullName'=>['en'=>'Psalms'          , 'ru'=>'Псалтирь'			], 'code2'=>'Ps'	];
 		case 20: return ['code'=>'pro', 'shortName'=>['en'=>'Prov'  , 'ru'=>'Прит' ], 'fullName'=>['en'=>'Proverbs'        , 'ru'=>'Притчи'				], 'code2'=>'Prov'	];
-		case 21: return ['code'=>'ecc', 'shortName'=>['en'=>'Eccles', 'ru'=>'Еккл' ], 'fullName'=>['en'=>'Ecclesiastes'    , 'ru'=>'Екклесиаст'			], 'code2'=>'Ecc'	];
+		case 21: return ['code'=>'ecc', 'shortName'=>['en'=>'Eccles', 'ru'=>'Еккл' ], 'fullName'=>['en'=>'Ecclesiastes'    , 'ru'=>'Екклесиаст'			], 'code2'=>'Eccl'	];
 		case 22: return ['code'=>'sng', 'shortName'=>['en'=>'Song'  , 'ru'=>'Песн' ], 'fullName'=>['en'=>'Song of Solomon' , 'ru'=>'Песни Песней'		], 'code2'=>'Song'	];
 
 		case 23: return ['code'=>'isa', 'shortName'=>['en'=>'Is'    , 'ru'=>'Ис'   ], 'fullName'=>['en'=>'Isaiah'          , 'ru'=>'Исаия'				], 'code2'=>'Isa'	];
