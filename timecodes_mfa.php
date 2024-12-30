@@ -1,7 +1,7 @@
 <?php
 
-$only_book = false; // false
-$only_chapter = false;
+$only_book = 21; // false
+$only_chapter = 1;
 
 require 'include.php';
 

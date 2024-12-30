@@ -390,6 +390,9 @@ function convert_mp3_to_vaw($translation, $voice, $book, $chapter)
 	else {
 		// print("File $filename_destination already exists\n");
 	}
+
+	if ( !file_exists($filename_destination) ) 
+		die("Error in convert_mp3_to_vaw\n");
 }
 
 // Есть хотя бы одна буква (латиница и кириллица)
