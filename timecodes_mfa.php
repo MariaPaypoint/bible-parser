@@ -196,7 +196,21 @@ function mfa_align_all($translation, $voice, $mode)
 	
 	$mfa_output_dir = "audio/$translation/$voice/mfa_output";
 	$mfa_input_dir  = "audio/$translation/$voice/mfa_input";
+
+	// определение моделей
+	$translation_info = get_translation_info($translation);
 	
+	switch($translation_info['lang']) {
+		case 'en':
+			$models = 'english_mfa english_mfa';
+			break;
+		case 'ru':
+			$models = 'russian_mfa russian_mfa';
+			break;
+		default:
+			die('Undetermined models for this language');
+	}
+
 	// очистим/пересоздадим папку вывода
 	if ( $mode == 'MODE_REPLACE' ) 
 	{
@@ -223,7 +237,8 @@ function mfa_align_all($translation, $voice, $mode)
 				continue;
 			}
 			create_dir777_if_not_exists("$mfa_output_dir/$book0");
-			exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 russian_mfa russian_mfa /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
+			exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 $models /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
+			//exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 russian_mfa russian_mfa /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
 		}
 	}
 
@@ -242,6 +257,8 @@ function prepare_container() {
 		exec_and_print('docker run -it -d --name mfa --volume "' . __DIR__ . '/audio:/audio" mmcauliffe/montreal-forced-aligner:v2.2.17');
 		exec_and_print('docker exec -it mfa bash -c "mfa models download dictionary russian_mfa --version v2.0.0a"');
 		exec_and_print('docker exec -it mfa bash -c "mfa models download acoustic russian_mfa --version v2.0.0a"');
+		exec_and_print('docker exec -it mfa bash -c "mfa models download dictionary english_mfa --version v2.0.0a"');
+		exec_and_print('docker exec -it mfa bash -c "mfa models download acoustic english_mfa --version v2.0.0a"');
 	}
 }
 
@@ -292,12 +309,7 @@ function create_chapter_plain($voice, $voice_info, $chapter, $book_number, $chap
 		$str .= ($prename ? $prename : $book_info['fullName'][$lang]) . ".\n";
 	}
 	if ( $voice_info['readChapterNumbers'] )
-	{
-		if ( $book_number == 19 )
-			$str .= 'Псалом ' . get_ps_name($chapter_number) . ".\n";
-		else
-			$str .= 'Глава ' . get_chapter_name($chapter_number) . ".\n";
-	}
+		$str .= get_chapter_name($lang, $book_number, $chapter_number) . ".\n";
 	
 	foreach ( $chapter['verses'] as $verse )
 	{
@@ -405,9 +417,15 @@ function check_all($translation, $voice, $try)
 				print "Need fix: book $book[id] / chapter $chapter[id] is empty!\n";
 				
 				// копируем файлы
-				copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.wav", "$mfa_input_dir/{$book0}_$chapter0.wav");
-				copy("audio/$translation/$voice/mfa_input/$book0/$chapter0.txt", "$mfa_input_dir/{$book0}_$chapter0.txt");
-				
+                $source_wav = "audio/$translation/$voice/mfa_input/$book0/$chapter0.wav";
+                $source_txt = "audio/$translation/$voice/mfa_input/$book0/$chapter0.txt";
+                
+                if ( !file_exists($source_wav) ) die("$source_wav does not exist!\n");
+				if ( !file_exists($source_txt) ) die("$source_txt does not exist!\n");
+
+                copy($source_wav, "$mfa_input_dir/{$book0}_$chapter0.wav");
+                copy($source_txt, "$mfa_input_dir/{$book0}_$chapter0.txt");
+                
 				$errors_count += 1;
 				if ( $errors_count >= 3 ) break;
 			}

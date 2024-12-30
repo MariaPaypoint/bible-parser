@@ -107,7 +107,7 @@ function get_voice_array($translation, $voice)
 }
 
 // название главы, в том виде как она зачитывается чтецом
-function get_chapter_name_1($digit) {
+function get_chapter_name_ru_1($digit) {
 	switch ($digit) {
 		case 0 : return '';
 		case 1 : return 'первая';
@@ -121,7 +121,7 @@ function get_chapter_name_1($digit) {
 		case 9 : return 'девятая';
 	}
 }
-function get_chapter_name_2($digit) {
+function get_chapter_name_ru_2($digit) {
 	switch ($digit) {
 		case 10 : return 'десятая';
 		case 11 : return 'одиннадцатая';
@@ -135,7 +135,7 @@ function get_chapter_name_2($digit) {
 		case 19 : return 'девятнадцатая';
 	}
 }
-function get_chapter_name_3($digit, $zero) {
+function get_chapter_name_ru_3($digit, $zero) {
 	switch ($digit) {
 		case 2 : return $zero ? 'двадцатая'     : 'двадцать';
 		case 3 : return $zero ? 'тридцатая'     : 'тридцать';
@@ -147,15 +147,43 @@ function get_chapter_name_3($digit, $zero) {
 		case 9 : return $zero ? 'девяностая'    : 'девяносто';
 	}
 }
-function get_chapter_name($chapter){
-	if ( $chapter <= 9 )
-		return get_chapter_name_1($chapter);
-	elseif ( $chapter <= 19 )
-		return get_chapter_name_2($chapter);
-	elseif ( $chapter == 100 )
-		return 'сотая';
+
+function get_chapter_name($lang, $book, $chapter){
+	if ( $book == 19 && $lang == 'ru' )
+		return 'Псалом ' . get_ps_name($chapter);
+	elseif ( $lang == 'ru' )
+		return 'Глава ' . get_base_name($lang, $chapter);
+	elseif ( $lang == 'en' )
+		return 'Chapter ' . get_base_name($lang, $chapter);
 	else
-		return ($chapter > 100 ? 'сто ' : '') . get_chapter_name_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_chapter_name_1($chapter % 10);
+		die("Unknown language: $lang (wait one of: ru, en)\n");
+}
+
+function get_base_name($lang, $chapter){
+	switch($lang) {
+		case 'ru':
+			if ( $chapter <= 9 )
+				return get_base_name_ru_1($chapter);
+			elseif ( $chapter <= 19 )
+				return get_base_name_ru_2($chapter);
+			elseif ( $chapter == 100 )
+				return 'сотая';
+			else
+				return ($chapter > 100 ? 'сто ' : '') . get_base_name_ru_3( round($chapter / 10), $chapter%10==0 ) . ' ' . get_base_name_ru_1($chapter % 10);
+			break;
+		case 'en':
+			if ( $chapter <= 9 )
+				return ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][$chapter-1];
+			elseif ( $chapter <= 19 )
+				return ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'][$chapter-10];
+			elseif ( $chapter <= 99 )
+				return ['twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'][floor($chapter/10)-2] . ($chapter%10 ? ' ' . get_base_name('en', $chapter % 10) : '');
+			elseif ( $chapter == 100 )
+				return 'one hundred';
+			else
+				return 'one hundred ' . get_base_name('en', $chapter % 100);
+			break;
+	}
 }
 
 // Номера псалмов (в отличие от глав - род мужской)
@@ -261,7 +289,8 @@ function get_chapter_audio_url($translation, $voice, $book, $chapter)
 		'chapter0'      => str_pad($chapter, 2, '0', STR_PAD_LEFT),
 		'bookCode'      => $book_info['code'],
 		'translation'   => $translation,
-		'bookCodeUpper' => strtoupper($book_info['code'])
+		'bookCodeUpper' => strtoupper($book_info['code']),
+		'bookCode2'     => $book_info['code2'],
 	]);
 	return $link;
 }

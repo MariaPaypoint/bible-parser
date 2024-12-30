@@ -182,7 +182,11 @@ class BibleParser
         // Process any remaining verses
         $verseNodes = $xpath->query("//span[contains(@class, 'ChapterContent_verse__') and @data-usfm]");
         $this->processVerses($verseNodes, $result, $xpath, $doc, $processedVerses);
-    
+        
+        // Сортируем стихи по порядку
+        usort($result['verses'], function ($a, $b) {
+            return $a['id'] - $b['id'];
+        });
         // перепозиционируем все примечания
         $this->fixNotesPositions($result);
         return $result;
@@ -223,6 +227,8 @@ class BibleParser
     
 
     private function getPositionInFormattedString($unformatted, $formatted, $positionInUnformatted) {
+        if ($unformatted == $formatted) return $positionInUnformatted;
+
         $pos1 = 0; // Позиция в неформатированной строке
         $pos2 = 0; // Позиция в форматированной строке
         $lengthFormatted = strlen($formatted);
@@ -256,7 +262,7 @@ class BibleParser
         }
     
         // Если позиция не найдена
-        die("Position not found\n");
+        die("Position not found [$unformatted, $formatted, $positionInUnformatted]\n");
         //return -1; 
     }
     
