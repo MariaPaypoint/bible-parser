@@ -107,7 +107,7 @@ function get_voice_array($translation, $voice)
 }
 
 // название главы, в том виде как она зачитывается чтецом
-function get_chapter_name_ru_1($digit) {
+function get_base_name_ru_1($digit) {
 	switch ($digit) {
 		case 0 : return '';
 		case 1 : return 'первая';
@@ -121,7 +121,7 @@ function get_chapter_name_ru_1($digit) {
 		case 9 : return 'девятая';
 	}
 }
-function get_chapter_name_ru_2($digit) {
+function get_base_name_ru_2($digit) {
 	switch ($digit) {
 		case 10 : return 'десятая';
 		case 11 : return 'одиннадцатая';
@@ -135,7 +135,7 @@ function get_chapter_name_ru_2($digit) {
 		case 19 : return 'девятнадцатая';
 	}
 }
-function get_chapter_name_ru_3($digit, $zero) {
+function get_base_name_ru_3($digit, $zero) {
 	switch ($digit) {
 		case 2 : return $zero ? 'двадцатая'     : 'двадцать';
 		case 3 : return $zero ? 'тридцатая'     : 'тридцать';
@@ -146,17 +146,6 @@ function get_chapter_name_ru_3($digit, $zero) {
 		case 8 : return $zero ? 'восьмидесятая' : 'восемьдесят';
 		case 9 : return $zero ? 'девяностая'    : 'девяносто';
 	}
-}
-
-function get_chapter_name($lang, $book, $chapter){
-	if ( $book == 19 && $lang == 'ru' )
-		return 'Псалом ' . get_ps_name($chapter);
-	elseif ( $lang == 'ru' )
-		return 'Глава ' . get_base_name($lang, $chapter);
-	elseif ( $lang == 'en' )
-		return 'Chapter ' . get_base_name($lang, $chapter);
-	else
-		die("Unknown language: $lang (wait one of: ru, en)\n");
 }
 
 function get_base_name($lang, $chapter){
@@ -184,6 +173,17 @@ function get_base_name($lang, $chapter){
 				return 'one hundred ' . get_base_name('en', $chapter % 100);
 			break;
 	}
+}
+
+function get_chapter_name($lang, $book, $chapter){
+	if ( $book == 19 && $lang == 'ru' )
+		return 'Псалом ' . get_ps_name($chapter);
+	elseif ( $lang == 'ru' )
+		return 'Глава ' . get_base_name($lang, $chapter);
+	elseif ( $lang == 'en' )
+		return 'Chapter ' . get_base_name($lang, $chapter);
+	else
+		die("Unknown language: $lang (wait one of: ru, en)\n");
 }
 
 // Номера псалмов (в отличие от глав - род мужской)
