@@ -3,7 +3,7 @@
 function get_translation_info($translation)
 {
     $translations = [
-        'syn'  => ['lang' => 'ru', 'shortName' => 'SYNO', 'fullName' => 'Синодальный перевод', 'bibleComDigitCode' => '167'],
+        'syn'  => ['lang' => 'ru', 'shortName' => 'SYNO', 'fullName' => 'Синодальный перевод', 'bibleComDigitCode' => '400'],
         'nrt'  => ['lang' => 'ru', 'shortName' => 'НРП',  'fullName' => 'Новый русский перевод', 'bibleComDigitCode' => '143'],
         'bti'  => ['lang' => 'ru', 'shortName' => 'BTI',  'fullName' => 'Библия в переводе Кулаковых', 'bibleComDigitCode' => '313'],
         'kjv'  => ['lang' => 'ru', 'shortName' => 'KJV',  'fullName' => 'King James Bible', 'bibleComDigitCode' => '1'],
@@ -264,7 +264,7 @@ function get_book_prename($voice, $book_index) {
 	
 	switch ($voice)
 	{
-		case 'syn-bondarenko':
+		case 'bondarenko':
 		{
 			$base_ru_template[2]  = 'Вторая книга Моисея Исход';
 			$base_ru_template[10] = '';
