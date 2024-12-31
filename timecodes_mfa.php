@@ -427,10 +427,10 @@ function check_all($translation, $voice, $try)
                 copy($source_txt, "$mfa_input_dir/{$book0}_$chapter0.txt");
                 
 				$errors_count += 1;
-				if ( $errors_count >= 3 ) break;
+				// if ( $errors_count >= 3 ) break;
 			}
 
-			if ( $errors_count >= 3 ) break;
+			// if ( $errors_count >= 3 ) break;
 		}
 	}
 	
