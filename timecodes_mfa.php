@@ -103,10 +103,13 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 	// print("skip_begin: $skip_begin\n");
 
 	$is_title = false;
+	$old_end = 0;
+
 	foreach ( $lines as $line ) {
 		
 		$line = mb_strtolower($line, 'UTF-8');
-		$interval = get_interval($line, 0, -1, 0);
+		$interval = get_interval($line, 0, -1, old_end: $old_end);
+		$old_end = $interval[2];
 		
 		if ( $skip_begin>0 ) {
 			$skip_begin -= 1;
@@ -168,14 +171,22 @@ function get_interval($line, $offset, $begin, $old_end)
 	$end = $entry[1];
 	$entryword = $entry[2];
 	
-	$b = ( $begin == -1 ) ? $entry[0] : $begin;
+	// отступ на полпаузы назад
+	if ( $begin == -1 ) {
+		//$prev_pause = $entry[0] - $old_end;
+		$prev_pause = 0; // решила пока все же не делать
+		$b = $entry[0] - $prev_pause/2;
+	} 
+	else
+		$b = $begin;
 	
 	if ( $entryword == '' ) {
 		return get_interval($line, $offset, $b, $end);
 	}
 	
-	if ( mb_strpos($line, $entryword, $offset) !== false ) {
-		$offset += mb_strlen($entryword) + 1;
+	$word_position = mb_strpos($line, $entryword, $offset);
+	if ( $word_position !== false ) {
+		$offset = $word_position + mb_strlen($entryword);
 		return get_interval($line, $offset, $b, $end);
 	}
 	
@@ -391,7 +402,8 @@ function check_all($translation, $voice, $try)
 	print "Checking alignment results, try $try...\n";
 	
 	$errors_count = 0;
-	
+	$fix_count = 0;
+
 	$translationArray = get_translation_array($translation);
 	
 	// очистим и пересоздадим временные директории
@@ -427,28 +439,32 @@ function check_all($translation, $voice, $try)
                 copy($source_txt, "$mfa_input_dir/{$book0}_$chapter0.txt");
                 
 				$errors_count += 1;
-				// if ( $errors_count >= 3 ) break;
+				if ( $errors_count % 10 == 0 )
+					$fix_count += fix_alignment($try, $translation, $voice, $mfa_input_dir, $mfa_output_dir);
 			}
 
-			// if ( $errors_count >= 3 ) break;
+			//if ( $errors_count > 0 && $errors_count % 10 == 0 )
+			//	$fix_count += fix_alignment($try, $translation, $voice, $mfa_input_dir, $mfa_output_dir);
 		}
 	}
 	
-	if ( $errors_count > 0 )
-	{
-		print "\n";
-		$beam = $try*1000 - 500;
-		$retry_beam = $try*1000;
-		prepare_container();
-		exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam $beam --retry_beam $retry_beam'");
-		$fix_count = save_fixes($translation, $voice);
-	}
-	else
-		$fix_count = 0;
+	if ( $errors_count % 10 > 0 )
+		$fix_count += fix_alignment($try, $translation, $voice, $mfa_input_dir, $mfa_output_dir);
 	
 	print "Checking done. $errors_count errors found, $fix_count fixed.\n";
 	
 	return $errors_count-$fix_count == 0;
+}
+
+function fix_alignment($try, $translation, $voice, $mfa_input_dir, $mfa_output_dir)
+{
+	$beam = $try*200 - 100;
+	$retry_beam = $try*200;
+	print "\n";
+	prepare_container();
+	exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam $beam --retry_beam $retry_beam'");
+	create_dir777_if_not_exists($mfa_input_dir, True);
+	return save_fixes($translation, $voice);
 }
 
 function save_fixes($translation, $voice)
