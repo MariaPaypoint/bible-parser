@@ -252,11 +252,15 @@ function mfa_align_all($translation, $voice, $mode)
 		if ( is_dir("$mfa_input_dir/$book0") )
 		{
 			// так может уже и не надо ничего делать?
-			if ( is_output_almost_full("$mfa_input_dir/$book0", "$mfa_output_dir/$book0") )
+			$percent = get_completed_part("$mfa_input_dir/$book0", "$mfa_output_dir/$book0");
+			print("$mfa_output_dir/$book0 has $percent % of completed ");
+			if ( $percent >= 70 )
 			{
-				print "$mfa_output_dir/$book0 already is full, skipped\n";
+				print("- skipped\n");
 				continue;
 			}
+			print("- aligning\n");
+
 			create_dir777_if_not_exists("$mfa_output_dir/$book0");
 			exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 $models /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
 			//exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir/$book0 russian_mfa russian_mfa /$mfa_output_dir/$book0 --beam 20 --retry_beam 80'");
@@ -283,7 +287,7 @@ function prepare_container() {
 	}
 }
 
-function is_output_almost_full($in_dir, $out_dir)
+function get_completed_part($in_dir, $out_dir)
 {
 	if ( !is_dir($out_dir) )
 		return False;
@@ -293,7 +297,7 @@ function is_output_almost_full($in_dir, $out_dir)
 		return strripos($value, 'wav');
 	});
 	if ( count($filtered_in_files) == 0 ) 
-		return True;
+		return 100;
 	// print_r($filtered_in_files);
 	// die();
 
@@ -307,10 +311,8 @@ function is_output_almost_full($in_dir, $out_dir)
 			//return False;
 		}
 	}
-
-	// до 30% нехватки пропустим потом через фикс
-	if ( $cc_not_exists / count($filtered_in_files) < 0.3 ) 
-		return True;
+	
+	return intval(100 - ($cc_not_exists / count($filtered_in_files) * 100));
 }
 
 
@@ -468,8 +470,8 @@ function check_all($translation, $voice, $try)
 
 function fix_alignment($try, $translation, $voice, $mfa_input_dir, $mfa_output_dir)
 {
-	$beam = $try*200 - 100;
-	$retry_beam = $try*200;
+	$beam = $try*1000 - 500;
+	$retry_beam = $try*1000;
 	print "\n";
 	prepare_container();
 	exec_and_print("docker exec -it mfa bash -c 'mfa align --clean --overwrite --output_format json /$mfa_input_dir russian_mfa russian_mfa /$mfa_output_dir --beam $beam --retry_beam $retry_beam'");
