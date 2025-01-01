@@ -420,7 +420,8 @@ function removeBrackets($str) {
 // Выполнить shell-команду
 function exec_and_print($cmd, $return_error=False) 
 {
-	print date("Y-m-d H:i:s") . " CMD: $cmd...";
+	$dt = new DateTime("now", new DateTimeZone('Europe/Moscow')); 
+	print $dt->format('d.m.Y H:i:s') . "CMD: $cmd...";
 	
 	$result = exec($cmd, $output);
 	

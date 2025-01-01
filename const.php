@@ -97,7 +97,7 @@ function get_voice_info($voice)
 					'readChapterNumbers'       => 1,
 					'readTitles'               => 0,
 					'link'                     => 'https://stream.biblegateway.com/bibles/32/niv-dramatized/%bookCode2$s.%chapter$s.mp3',
-					'link_template'            => 'https://stream.biblegateway.com/bibles/32/niv-dramatized/{bookCode2}.{chapter}.mp3',
+					'link_template'            => 'https://stream.biblegateway.com/bibles/32/niv-dramatized/{book_code2}.{chapter}.mp3',
 					'source'				   => 'https://www.biblegateway.com/audio/dramatized/niv/'
 				];
 	

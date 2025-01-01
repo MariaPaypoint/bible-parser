@@ -32,6 +32,7 @@ final class InitDB extends AbstractMigration
 			`book_number` smallint NOT NULL COMMENT 'from table dict_universal_books',
 			`translation` int NOT NULL,
 			`name` varchar(255) NOT NULL,
+			`book_code2` VARCHAR(10) NOT NULL,
 			PRIMARY KEY (`code`),
 			KEY `translation_idx` (`translation`),
 			KEY `book_number_idx` (`book_number`),
