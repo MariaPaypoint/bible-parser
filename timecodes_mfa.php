@@ -444,7 +444,7 @@ function check_all($translation, $voice, $try)
                 $source_wav = "audio/$translation/$voice/mfa_input/$book0/$chapter0.wav";
                 $source_txt = "audio/$translation/$voice/mfa_input/$book0/$chapter0.txt";
                 
-                if ( !file_exists($source_wav) ) die("$source_wav does not exist!\n");
+                if ( !file_exists($source_wav) ) print("$source_wav does not exist!\n");
 				if ( !file_exists($source_txt) ) die("$source_txt does not exist!\n");
 
                 copy($source_wav, "$mfa_input_dir/{$book0}_$chapter0.wav");
@@ -470,7 +470,7 @@ function check_all($translation, $voice, $try)
 
 function fix_alignment($try, $translation, $voice, $mfa_input_dir, $mfa_output_dir)
 {
-	$beam = $try*1000 - 500;
+	$beam = $try*1000 - ($try==1 ? 800 : 500);
 	$retry_beam = $try*1000;
 	print "\n";
 	prepare_container();
