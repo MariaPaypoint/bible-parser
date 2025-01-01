@@ -279,6 +279,20 @@ function get_book_prename($voice, $book_index) {
 
 			return $base_ru_template[$book_index];
 		}
+		case 'prudovsky':
+		{
+			// авдия совсем нет? 2ин, 3ин, иуды, к филимону
+			$base_ru_template[15] = 'Первая книга Ездры';
+			$base_ru_template[17] = 'Книга Есфири';
+			$base_ru_template[19] = 'Библия. Псалтирь';
+			$base_ru_template[40] = 'Библия. Новый завет Господа нашего Иисуса Христа. Канонический. Чикаго, тысяча девятьсот восемьдесят девятый год. От Матфея святое благословение';
+			$base_ru_template[41] = 'От Марка святое благословение';
+			$base_ru_template[42] = 'От Луки святое благословение';
+			$base_ru_template[43] = 'От Иоанна святое благословение';
+			$base_ru_template[45] = 'Соборное послание Святого апостола Иакова';
+
+			return $base_ru_template[$book_index];
+		}
 		case 'bti-prozorovsky':
 			$base_ru_template[7]  = 'Книга судей Израиля';
 			$base_ru_template[8]  = 'Книга Руфи';
