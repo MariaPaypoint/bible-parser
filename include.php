@@ -408,15 +408,19 @@ function containsLetter($str) {
 }
 
 // Удаляем только скобки, но оставляем содержимое внутри
+// добавила также удаление ’
 function removeBrackets($str) {
-    $str = str_replace(['[', ']', '(', ')', '<', '>'], '', $str);
+	$str = preg_replace("/(?<=\p{L})’(?=\p{L})/u", "'", $str);
+    $str = str_replace(['[', ']', '(', ')', '<', '>', '’', '‘', '“', '”'], ' ', $str);
+	$str = str_replace('  ', ' ', $str);
+	$str = trim($str);
     return $str;
 }
 
 // Выполнить shell-команду
 function exec_and_print($cmd, $return_error=False) 
 {
-	print "CMD: $cmd...";
+	print date("Y-m-d H:i:s") . " CMD: $cmd...";
 	
 	$result = exec($cmd, $output);
 	
