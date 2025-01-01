@@ -639,8 +639,8 @@ class BibleParser
                 $url = $this->get_url($book_info['code'], $chapter_id);
                 $doc->loadHTMLFile($url);
                 if (strpos($doc->textContent, self::WRONG_TEXT) !== false) {
-                    print("$url\n");
-                    print(self::WRONG_TEXT."\n");
+                    // print("$url\n");
+                    // print(self::WRONG_TEXT."\n");
                     break;
                 }
                 print " $chapter_id";
