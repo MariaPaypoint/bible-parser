@@ -8,7 +8,7 @@ require 'include.php';
 // форматирование выровненных файлов в итоговый файл timecodes.json
 function format_all($translation, $voice)
 {
-	global $only_book, $only_chapter;
+	global $only_book, $only_chapter, $reparse;
 	
 	print("\nFORMATTING:\n");
 	
@@ -24,6 +24,8 @@ function format_all($translation, $voice)
 	$translation_info = get_translation_info($translation);
 	$bible['lang'] = $translation_info['lang'];
 	
+	$reparse = [];
+
 	foreach($translationArray['books'] as $book)
 	{
 		$book_number = $book['id'];
@@ -44,7 +46,8 @@ function format_all($translation, $voice)
 		$book0 = str_pad($book_number, 2, '0', STR_PAD_LEFT);
 		
 		print("Book $book0 ... ");
-	
+		
+		
 		foreach ( $book['chapters'] as $chapter ) {
 			$chapter_number = $chapter['id'];
 			
@@ -57,6 +60,8 @@ function format_all($translation, $voice)
 				'verses' => get_formatted_chapter_timecodes_mfa($book0, $chapter0, $translation, $voice, $chapter, $voice_info)
 			]);
 		}
+
+		
 		
 		array_push($bible['books'], $bookArray);
 		
@@ -68,7 +73,11 @@ function format_all($translation, $voice)
 			
 		print("Done!\n");
 	}
-	
+	if ( $reparse !== [] ) {
+		print_r(array_unique($reparse));
+		print ("Обратите внимание, что эти главы содержат ошибки. Исправьте код, удалите соответствующие json-файлы и повторите сохранение с MODE_FINISH.\n\n");
+	}
+
 	file_put_contents($filename, json_encode($bible, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 	
 	print("\nResult saved to $filename\n\n");
@@ -76,7 +85,7 @@ function format_all($translation, $voice)
 
 function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voice, $chapterArray, $voice_info) 
 {
-	global $entries;
+	global $entries, $reparse;
 
 	$filename_json = "audio/$translation/$voice/mfa_output/$book/$chapter.json";
 	if ( !file_exists($filename_json) ) {
@@ -143,7 +152,8 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 		if ( $verse['end'] < $verse['begin'] ) {
 			if ( containsLetter($line) ) {
 				print("Error: end [$verse[end]] < begin [$verse[begin]] IN book:$book, chapter:$chapter, verse:$verse[id], line:$line\n");
-				die();
+				//die();
+				$reparse[] = "$book/$chapter";
 			}
 			else 
 				$verse['end'] = $verse['begin']; // example: bti book:01, chapter:42, verse:3, line:—
@@ -158,7 +168,7 @@ function get_formatted_chapter_timecodes_mfa($book, $chapter, $translation, $voi
 function get_interval($line, $offset, $begin, $old_end) 
 {
 	global $entries;
-	
+
 	$entry = array_shift($entries);
 	
 	if ( $entry == null ) {
@@ -168,12 +178,21 @@ function get_interval($line, $offset, $begin, $old_end)
 	$end = $entry[1];
 	$entryword = $entry[2];
 	
+	/*
+	// remove last ' or ’ if it is the last symbol
+	print "$entryword\n";
+	if ( mb_substr($entryword, -1) == "'" || mb_substr($entryword, -1) == "’" ) {
+		$entryword = mb_substr($entryword, 0, -1);
+	}
+	print "$entryword\n";
+	*/
 	$b = ( $begin == -1 ) ? $entry[0] : $begin;
 	
 	if ( $entryword == '' ) {
 		return get_interval($line, $offset, $b, $end);
 	}
 	
+	/*if ( mb_strpos($line, $entryword, $offset) !== false || mb_strpos($line, str_replace("'", "’", $entryword), $offset) !== false || mb_strpos($line, str_replace("'", "’ ", $entryword), $offset) !== false ) { */
 	if ( mb_strpos($line, $entryword, $offset) !== false ) {
 		$offset += mb_strlen($entryword) + 1;
 		return get_interval($line, $offset, $b, $end);
