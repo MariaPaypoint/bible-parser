@@ -309,8 +309,12 @@ function download_chapter_audio($translation, $voice, $book, $chapter)
 		
 		if ( !file_exists(dirname($save_filename)) )
 			mkdir(dirname($save_filename), 0755, true);
+		
+		$content =file_get_contents($url);
+		if ( $content === false )
+			die("Unable to download mp3 from $url\n");
 
-		file_put_contents($save_filename, file_get_contents($url));
+		file_put_contents($save_filename, $content);
 		// print("Audio saved to $save_filename\n");
 	}
 }
