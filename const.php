@@ -50,7 +50,7 @@ function get_voice_info($voice)
 				'link'                     => $link_4bbl,
 				'link_template'            => 'https://4bbl.ru/data/new-russian/{book_zerofill}/{chapter_zerofill}.mp3'
 			];
-		case 'bti-prozorovsky' : 
+		case 'prozorovsky' : 
 			return [
 				'name'                     => 'Никита Семёнов-Прозоровский', 
 				'isMusic'                  => 1, 
@@ -59,7 +59,7 @@ function get_voice_info($voice)
 				'readBookNamesAllChapters' => 0,
 				'readChapterNumbers'       => 1,
 				'readTitles'               => 0,
-				'link'                     => $link_4bbl,
+				'link'                     => 'https://4bbl.ru/data/bti-prozorovsky/%book0$s/%chapter0$s.mp3',
 				'link_template'            => 'https://4bbl.ru/data/bti-prozorovsky/{book_zerofill}/{chapter_zerofill}.mp3'
 			];
 		case 'prudovsky' : 
@@ -293,7 +293,7 @@ function get_book_prename($voice, $book_index) {
 
 			return $base_ru_template[$book_index];
 		}
-		case 'bti-prozorovsky':
+		case 'prozorovsky':
 			$base_ru_template[7]  = 'Книга судей Израиля';
 			$base_ru_template[8]  = 'Книга Руфи';
 			$base_ru_template[17] = 'Книга Есфири';
